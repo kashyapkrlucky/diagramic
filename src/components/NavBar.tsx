@@ -1,31 +1,46 @@
-import { PanelRightCloseIcon } from "lucide-react";
+import {
+  PanelRightCloseIcon,
+  PanelRightIcon,
+  UndoIcon,
+  RedoIcon,
+  BrushCleaningIcon,
+  SaveIcon,
+} from "lucide-react";
 
 interface NavBarProps {
+  isSidebarOpen: boolean;
   onToggleSidebar: () => void;
+  onCanvasAction: (action: string) => void;
 }
 
-export default function NavBar({ onToggleSidebar }: NavBarProps) {
+export default function NavBar({
+  isSidebarOpen,
+  onToggleSidebar,
+  onCanvasAction,
+}: NavBarProps) {
+
+  const actions = [
+    { icon: <UndoIcon className="w-5 h-5" />, name: "undo" },
+    { icon: <RedoIcon className="w-5 h-5" />, name: "redo" },
+    { icon: <BrushCleaningIcon className="w-5 h-5" />, name: "clear" },
+    { icon: <SaveIcon className="w-5 h-5" />, name: "save" },
+  ];
   return (
     <header className="border-b border-gray-300 p-2 flex items-center justify-between">
       <h1>Let's Draw</h1>
       <div className="flex items-center gap-2">
-        <button
-          className="px-2 py-1 border border-gray-300 rounded text-xs"
-          onClick={onToggleSidebar}
-        >
-          <PanelRightCloseIcon className="w-4 h-4" />
-        </button>
-        <button className="px-2 py-1 border border-gray-300 rounded text-xs">
-          Undo
-        </button>
-        <button className="px-2 py-1 border border-gray-300 rounded text-xs">
-          Redo
-        </button>
-        <button className="px-2 py-1 border border-gray-300 rounded text-xs">
-          Clear
-        </button>
-        <button className="px-2 py-1 border border-gray-300 rounded text-xs">
-          Save
+        {actions.map((action, index) => (
+          <button key={index} className="p-2" onClick={() => onCanvasAction(action.name)}>
+            {action.icon}
+          </button>
+        ))}
+
+        <button className="" onClick={onToggleSidebar}>
+          {isSidebarOpen ? (
+            <PanelRightCloseIcon className="w-5 h-5" />
+          ) : (
+            <PanelRightIcon className="w-5 h-5" />
+          )}
         </button>
       </div>
     </header>
