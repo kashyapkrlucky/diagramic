@@ -14,6 +14,7 @@ interface CanvasStore {
   setColor: (color: string) => void;
 
   nodes: CanvasNode[];
+  setNodes: (nodes: CanvasNode[]) => void;
   addNode: (node: CanvasNode) => void;
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) => void;
   removeNode: (nodeId: string) => void;
@@ -38,6 +39,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setColor: (color: string) => set({ color }),
 
   nodes: [],
+  setNodes: (nodes: CanvasNode[]) => set({ nodes }),
   addNode: (node: CanvasNode) =>
     set((state) => ({ nodes: [...state.nodes, node] })),
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) =>
