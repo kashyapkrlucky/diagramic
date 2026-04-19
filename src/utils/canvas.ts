@@ -18,8 +18,9 @@ function setupShapeStyle(ctx: CanvasRenderingContext2D, color: string): void {
   ctx.lineWidth = DEFAULT_STROKE_WIDTH;
 }
 
-function setupTextStyle(ctx: CanvasRenderingContext2D, fontSize: number): void {
-  ctx.font = `${fontSize}px system-ui`;
+function setupTextStyle(ctx: CanvasRenderingContext2D, fontSize: number, color: string): void {
+  ctx.fillStyle = color;
+  ctx.font = `${fontSize}px Consolas, Monaco, 'Courier New', monospace`;
 }
 
 function drawCircle({ ctx, node }: DrawingContext): void {
@@ -87,14 +88,15 @@ function drawSquare({ ctx, node }: DrawingContext): void {
 function drawText({ ctx, node }: DrawingContext): void {
   const { x, y, text } = node.data as { x: number; y: number; text: string };
   
-  setupTextStyle(ctx, DEFAULT_FONT_SIZE);
+  setupTextStyle(ctx, DEFAULT_FONT_SIZE, node.color);
   ctx.fillText(text, x, y);
+
 }
 
 function drawAnnotation({ ctx, node }: DrawingContext): void {
   const { x, y } = node.data as { x: number; y: number };
   
-  setupTextStyle(ctx, DEFAULT_ANNOTATION_FONT_SIZE);
+  setupTextStyle(ctx, DEFAULT_ANNOTATION_FONT_SIZE, node.color);
   ctx.fillText("📝", x, y);
 }
 
