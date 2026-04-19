@@ -8,15 +8,17 @@ import Sidebar from "./components/Sidebar";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [canvasAction, setCanvasAction] = useState<string>("");
+  
   const onCanvasAction = (action: string) => {
-    console.log("Canvas action", action);
+    setCanvasAction(action);
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen w-screen overflow-hidden">
       <NavBar onCanvasAction={onCanvasAction} isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       <main className="flex-1 relative">
-        <Canvas onAction={onCanvasAction} />
+        <Canvas action={canvasAction} />
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <ToolBar />
         <ToolOptions />
