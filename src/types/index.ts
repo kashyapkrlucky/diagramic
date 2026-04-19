@@ -1,3 +1,14 @@
+export const ToolType = {
+  Select: "Select",
+  Square: "Square",
+  Circle: "Circle",
+  Triangle: "Triangle",
+  Text: "Text",
+  Annotation: "Annotation",
+} as const
+
+export type ToolType = typeof ToolType[keyof typeof ToolType]
+
 export interface Tool {
   name: string;
   icon: React.ReactNode;
@@ -51,10 +62,12 @@ export interface Annotation {
   text: string;
 }
 
+export type NodeData = Square | Circle | Triangle | Line | Text | Arrow | Annotation;
+
 export interface CanvasNode {
   id: string;
-  tool: Tool;
-  subTool: Tool | null;
+  tool: ToolType;
+  subTool: ToolType | null;
   color: string;
-  data?: Square | Circle | Triangle | Line | Text | Arrow | Annotation | null;
+  data?: NodeData | null;
 }

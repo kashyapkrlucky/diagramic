@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Tool, CanvasNode } from "../types";
+import type { Tool, CanvasNode, NodeData } from "../types";
 import { tools } from "../components/ToolListing";
 
 interface CanvasStore {
@@ -13,9 +13,9 @@ interface CanvasStore {
   color: string;
   setColor: (color: string) => void;
 
-
   nodes: CanvasNode[];
   addNode: (node: CanvasNode) => void;
+  updateNodeData: (nodeId: string, data: Partial<NodeData>) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: () => void;
 }
@@ -31,9 +31,28 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setSelectedSubTool: (tool: Tool) => set({ selectedSubTool: tool }),
   color: "#000000",
   setColor: (color: string) => set({ color }),
-  
+
   nodes: [],
-  addNode: (node: CanvasNode) => set((state) => ({ nodes: [...state.nodes, node] })),
-  removeNode: (nodeId: string) => set((state) => ({ nodes: state.nodes.filter((node) => node.id !== nodeId) })),
+  addNode: (node: CanvasNode) =>
+    set((state) => ({ nodes: [...state.nodes, node] })),
+  updateNodeData: (nodeId: string, data: Partial<NodeData>) =>
+    set((state) => ({
+      nodes: state.nodes.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...data,
+            },
+          };
+        }
+        return node;
+      }),
+    })),
+  removeNode: (nodeId: string) =>
+    set((state) => ({
+      nodes: state.nodes.filter((node) => node.id !== nodeId),
+    })),
   removeNodes: () => set({ nodes: [] }),
 }));
