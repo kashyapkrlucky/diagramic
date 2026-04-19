@@ -13,7 +13,7 @@ export default function ToolOptions() {
           key={tool.name}
           onClick={() => setSelectedSubTool(tool)}
           className={
-            selectedSubTool?.name === tool.name ? "text-purple-500" : ""
+            typeof selectedSubTool === 'string' ? (selectedSubTool === tool.name ? "text-purple-500" : "") : selectedSubTool?.name === tool.name ? "text-purple-500" : ""
           }
         >
           {tool.icon}

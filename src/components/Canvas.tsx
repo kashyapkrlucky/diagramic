@@ -61,50 +61,35 @@ export default function Canvas({ action }: CanvasProps) {
       const color = useCanvasStore.getState().color;
       if (!selectedTool) return;
 
-      if (selectedTool.name === ToolType.Select) {
+      const toolName =
+        typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+
+      if (
+        toolName === ToolType.Square ||
+        toolName === ToolType.SquareDashed ||
+        toolName === ToolType.Circle ||
+        toolName === ToolType.Ellipse ||
+        toolName === ToolType.Diamond
+      ) {
         setStartX(x);
         setStartY(y);
         return;
       } else {
         const node: CanvasNode = {
           id: Date.now().toString(),
-          tool: selectedTool.name as ToolType,
+          tool: toolName as ToolType,
           subTool: null,
           data: null,
           color: color,
         };
 
-        if (selectedTool?.name === "Square") {
-          node.data = {
-            x: x,
-            y: y,
-            width: 100,
-            height: 100,
-          };
-        } else if (selectedTool?.name === "Circle") {
-          node.data = {
-            x: x,
-            y: y,
-            radius: 50,
-          };
-        } else if (selectedTool?.name === "Triangle") {
-          node.data = {
-            x1: x,
-            y1: y,
-            x2: x - 50,
-            y2: y + 100,
-            x3: x + 50,
-            y3: y + 100,
-          };
-        } else if (
-          selectedTool?.name === "Text" ||
-          selectedTool?.name === "Annotation"
-        ) {
+        if (toolName === ToolType.Select) {
+          // No data needed for select tool
+        } else if (toolName === ToolType.Text || toolName === ToolType.Annotation) {
           node.data = {
             x: x,
             y: y,
             text: "Text",
-            fontSize: 16,
           };
         }
         addNode(node);
@@ -124,10 +109,19 @@ export default function Canvas({ action }: CanvasProps) {
       const color = useCanvasStore.getState().color;
       if (!selectedTool) return;
 
-      if (selectedTool.name === ToolType.Select) {
+      const toolName =
+        typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+
+      if (
+        toolName === ToolType.Square ||
+        toolName === ToolType.SquareDashed ||
+        toolName === ToolType.Circle ||
+        toolName === ToolType.Ellipse ||
+        toolName === ToolType.Diamond
+      ) {
         addNode({
           id: Date.now().toString(),
-          tool: ToolType.Select,
+          tool: toolName as ToolType,
           subTool: null,
           data: {
             x1: startX,
@@ -156,11 +150,11 @@ export default function Canvas({ action }: CanvasProps) {
         const color = useCanvasStore.getState().color;
         const ctx = getContext();
         if (!ctx) return;
-        
+
         // Clear canvas and redraw existing shapes
         clearCanvas();
         draw();
-        
+
         // Draw selection preview with dashed line
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;

@@ -1,8 +1,11 @@
 export const ToolType = {
   Select: "Select",
+  Draw: "Draw",
   Square: "Square",
+  SquareDashed: "SquareDashed",
   Circle: "Circle",
-  Triangle: "Triangle",
+  Ellipse: "Ellipse",
+  Diamond: "Diamond",
   Text: "Text",
   Annotation: "Annotation",
 } as const
@@ -14,7 +17,29 @@ export interface Tool {
   icon: React.ReactNode;
   subTools: Tool[];
 }
+
 export interface Square {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface Draw {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  strokeColor: string;
+  strokeWidth: number;
+  strokeStyle: 'solid' | 'dashed';
+}
+
+export interface SquareDashed extends Square {
+  borderRadius: number;
+}
+
+export interface Diamond {
   x: number;
   y: number;
   width: number;
@@ -26,20 +51,12 @@ export interface Circle {
   y: number;
   radius: number;
 }
-export interface Triangle {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  x3: number;
-  y3: number;
-}
 
-export interface Line {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
+export interface Ellipse {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface Text {
@@ -49,25 +66,18 @@ export interface Text {
   fontSize: number;
 }
 
-export interface Arrow {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
 export interface Annotation {
   x: number;
   y: number;
   text: string;
 }
 
-export type NodeData = Square | Circle | Triangle | Line | Text | Arrow | Annotation;
+export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | Text | Annotation;
 
 export interface CanvasNode {
   id: string;
   tool: ToolType;
   subTool: ToolType | null;
   color: string;
-  data?: NodeData | null;
+  data?: NodeDataType | null;
 }
