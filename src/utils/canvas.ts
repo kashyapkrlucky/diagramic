@@ -18,7 +18,11 @@ function setupShapeStyle(ctx: CanvasRenderingContext2D, color: string): void {
   ctx.lineWidth = DEFAULT_STROKE_WIDTH;
 }
 
-function setupTextStyle(ctx: CanvasRenderingContext2D, fontSize: number, color: string): void {
+function setupTextStyle(
+  ctx: CanvasRenderingContext2D,
+  fontSize: number,
+  color: string,
+): void {
   ctx.fillStyle = color;
   ctx.font = `${fontSize}px Consolas, Monaco, 'Courier New', monospace`;
 }
@@ -37,7 +41,12 @@ function drawCircle({ ctx, node }: DrawingContext): void {
 }
 
 function drawEllipse({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as { x1: number; y1: number; x2: number; y2: number };
+  const { x1, y1, x2, y2 } = node.data as {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  };
   const radiusX = (x2 - x1) / 2;
   const radiusY = (y2 - y1) / 2;
   const centerX = x1 + radiusX;
@@ -51,7 +60,12 @@ function drawEllipse({ ctx, node }: DrawingContext): void {
 }
 
 function drawDiamond({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as { x1: number; y1: number; x2: number; y2: number };
+  const { x1, y1, x2, y2 } = node.data as {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  };
   const centerX = (x1 + x2) / 2;
   const centerY = (y1 + y2) / 2;
   const width = Math.abs(x2 - x1);
@@ -69,7 +83,12 @@ function drawDiamond({ ctx, node }: DrawingContext): void {
 }
 
 function drawSquare({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as { x1: number; y1: number; x2: number; y2: number };
+  const { x1, y1, x2, y2 } = node.data as {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  };
   const width = x2 - x1;
   const height = y2 - y1;
 
@@ -87,21 +106,61 @@ function drawSquare({ ctx, node }: DrawingContext): void {
 
 function drawText({ ctx, node }: DrawingContext): void {
   const { x, y, text } = node.data as { x: number; y: number; text: string };
-  
+
   setupTextStyle(ctx, DEFAULT_FONT_SIZE, node.color);
   ctx.fillText(text, x, y);
-
 }
 
 function drawAnnotation({ ctx, node }: DrawingContext): void {
   const { x, y } = node.data as { x: number; y: number };
-  
+
   setupTextStyle(ctx, DEFAULT_ANNOTATION_FONT_SIZE, node.color);
   ctx.fillText("📝", x, y);
 }
 
+function drawArrow({ ctx, node }: DrawingContext): void {
+  const { x1, y1, x2, y2 } = node.data as {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  };
 
-const DRAW_HANDLERS: Record<ToolType, ((context: DrawingContext) => void) | undefined> = {
+  setupShapeStyle(ctx, node.color);
+  // Calculate control points for bezier curve
+  const dx = x2 - x1;
+  const cx1 = x1 + dx * 0.5;
+  const cy1 = y1;
+  const cx2 = x1 + dx * 0.5;
+  const cy2 = y2;
+
+  // Draw curved path
+  ctx.strokeStyle = node.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2);
+  ctx.stroke();
+
+  // Draw arrowhead
+  const angle = Math.atan2(y2 - cy2, x2 - cx2);
+  ctx.save();
+  ctx.translate(x2, y2);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-10, -5);
+  ctx.lineTo(-10, 5);
+  ctx.closePath();
+  ctx.fillStyle = node.color;
+  ctx.fill();
+  ctx.restore();
+}
+
+const DRAW_HANDLERS: Record<
+  ToolType,
+  ((context: DrawingContext) => void) | undefined
+> = {
   [ToolType.Circle]: drawCircle,
   [ToolType.Ellipse]: drawEllipse,
   [ToolType.Diamond]: drawDiamond,
@@ -111,11 +170,16 @@ const DRAW_HANDLERS: Record<ToolType, ((context: DrawingContext) => void) | unde
   [ToolType.Annotation]: drawAnnotation,
   [ToolType.Select]: undefined,
   [ToolType.Draw]: undefined,
+  [ToolType.Arrow]: drawArrow,
+  [ToolType.ArrowDashed]: drawArrow,
 };
 
-export function drawShape(ctx: CanvasRenderingContext2D, node: CanvasNode): void {
+export function drawShape(
+  ctx: CanvasRenderingContext2D,
+  node: CanvasNode,
+): void {
   const handler = DRAW_HANDLERS[node.tool];
-  
+
   if (!handler) {
     console.warn("Unsupported tool:", node.tool, node);
     return;

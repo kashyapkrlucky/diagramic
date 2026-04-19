@@ -6,6 +6,8 @@ export const ToolType = {
   Circle: "Circle",
   Ellipse: "Ellipse",
   Diamond: "Diamond",
+  Arrow: "Arrow",
+  ArrowDashed: "ArrowDashed",
   Text: "Text",
   Annotation: "Annotation",
 } as const
@@ -59,6 +61,17 @@ export interface Ellipse {
   height: number;
 }
 
+export interface Arrow {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface ArrowDashed extends Arrow {
+  dashPattern: number[];
+}
+
 export interface Text {
   x: number;
   y: number;
@@ -72,7 +85,7 @@ export interface Annotation {
   text: string;
 }
 
-export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | Text | Annotation;
+export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | Arrow | Text | Annotation;
 
 export interface CanvasNode {
   id: string;
@@ -81,3 +94,11 @@ export interface CanvasNode {
   color: string;
   data?: NodeDataType | null;
 }
+
+
+export const EDGE_COLORS = {
+  DEFAULT: '#666',
+  SELECTED: '#007AFF',
+  HOVER: '#0056b3',
+  DASHED: '#999',
+} as const;

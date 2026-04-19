@@ -69,7 +69,8 @@ export default function Canvas({ action }: CanvasProps) {
         toolName === ToolType.SquareDashed ||
         toolName === ToolType.Circle ||
         toolName === ToolType.Ellipse ||
-        toolName === ToolType.Diamond
+        toolName === ToolType.Diamond ||
+        toolName === ToolType.Arrow
       ) {
         setStartX(x);
         setStartY(y);
@@ -117,7 +118,8 @@ export default function Canvas({ action }: CanvasProps) {
         toolName === ToolType.SquareDashed ||
         toolName === ToolType.Circle ||
         toolName === ToolType.Ellipse ||
-        toolName === ToolType.Diamond
+        toolName === ToolType.Diamond ||
+        toolName === ToolType.Arrow
       ) {
         addNode({
           id: Date.now().toString(),
@@ -155,15 +157,28 @@ export default function Canvas({ action }: CanvasProps) {
         clearCanvas();
         draw();
 
-        // Draw selection preview with dashed line
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]); // Create dashed line
-        ctx.strokeRect(startX, startY, x - startX, y - startY);
-        ctx.setLineDash([]); // Reset to solid line
+        console.log("selectedTool", selectedTool);
+        const toolName =
+          typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+        if (toolName === ToolType.Arrow) {
+          // Draw arrow preview
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        } else {
+          // Draw selection preview with dashed line
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]); // Create dashed line
+          ctx.strokeRect(startX, startY, x - startX, y - startY);
+          ctx.setLineDash([]); // Reset to solid line
+        }
       }
     },
-    [startX, startY, getContext, clearCanvas, draw],
+    [startX, startY, getContext, clearCanvas, draw, selectedTool],
   );
 
   useEffect(() => {

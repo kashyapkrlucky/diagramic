@@ -6,6 +6,7 @@ import {
   DiamondIcon,
   SquareDashedIcon,
   EllipseIcon,
+  CableIcon,
   TextCursorIcon,
   StickyNoteIcon,
 } from "lucide-react";
@@ -45,6 +46,11 @@ export const tools = [
   {
     name: ToolType.Diamond,
     icon: <DiamondIcon className="w-4 h-4" />,
+    subTools: [],
+  },
+  {
+    name: ToolType.Arrow,
+    icon: <CableIcon className="w-4 h-4" />,
     subTools: [],
   },
   {
