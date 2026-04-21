@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useCanvasStore } from "../store/canvasStore";
 
 const colors = [
-  "#000000", // Black
-  "#ffffff", // White
+  "#786fa6", // Lavender
   "#ff6b6b", // Red
   "#ee5a6f", // Pink
   "#ff9ff3", // Light Pink
@@ -18,10 +17,11 @@ const colors = [
   "#feca57", // Yellow
   "#ff9f43", // Orange
   "#ff6348", // Coral
-  "#786fa6", // Lavender
   "#546de5", // Indigo
   "#e15f41", // Red Orange
   "#3dc1d3", // Sky Blue
+  "#000000", // Black
+  "#ffffff", // White
 ];
 
 export default function ColorPicker() {

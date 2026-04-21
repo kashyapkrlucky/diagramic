@@ -46,7 +46,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setColor: (color: string) => set({ color }),
 
   nodes: [],
-  setNodes: (nodes: CanvasNode[]) => set({ nodes }),
+  setNodes: (nodes: CanvasNode[]) => { set({ nodes })},
   addNode: (node: CanvasNode) =>
     set((state) => ({ nodes: [...state.nodes, node] })),
   selectedNode: null,

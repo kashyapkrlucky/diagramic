@@ -11,7 +11,60 @@ export const useFetch = (url: string) => {
     setLoading(true);
     try {
       const response = await fetch(`${apiUrl}/${url}`);
-      const data = await response.json();
+      const { data } = await response.json();
+      setData(data);
+    } catch (error) {
+      setError(error as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const postData = async (payload: unknown) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/${url}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const { data } = await response.json();
+      setData(data);
+    } catch (error) {
+      setError(error as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateData = async (id: string, payload: unknown) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/${url}/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const { data } = await response.json();
+      setData(data);
+    } catch (error) {
+      setError(error as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteData = async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/${url}/${id}`, {
+        method: "DELETE",
+      });
+      const { data } = await response.json();
       setData(data);
     } catch (error) {
       setError(error as Error);
@@ -25,5 +78,8 @@ export const useFetch = (url: string) => {
     loading,
     error,
     getData,
+    postData,
+    updateData,
+    deleteData,
   };
 };

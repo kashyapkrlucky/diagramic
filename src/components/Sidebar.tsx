@@ -19,7 +19,7 @@ function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
 
   return (
     <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
-      <button
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 ${
           isSelected ? "border-2 border-blue-500" : ""
@@ -39,7 +39,7 @@ function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
         >
           <Trash2Icon className="w-3 h-3 text-red-500" />
         </button>
-      </button>
+      </div>
       
       {isOpen && (
         <div className="px-3 py-3 border-t border-gray-200">

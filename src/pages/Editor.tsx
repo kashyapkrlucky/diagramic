@@ -2,9 +2,9 @@ import Canvas from "../components/Canvas";
 import ToolBar from "../components/ToolBar";
 import Sidebar from "../components/Sidebar";
 import { useState } from "react";
-import NavBar from "../components/NavBar";
+import Layout from "../components/Layout";
 
-export default function Home() {
+export default function Editor() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [canvasAction, setCanvasAction] = useState<string>("");
 
@@ -13,20 +13,17 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
-      <NavBar
-        onCanvasAction={onCanvasAction}
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-      <main className="flex-1 relative">
-        <Canvas action={canvasAction} />
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-        />
-        <ToolBar />
-      </main>
-    </div>
+    <Layout
+      navbarType="editor"
+      navbarProps={{
+        onCanvasAction,
+        isSidebarOpen,
+        onToggleSidebar: () => setIsSidebarOpen(!isSidebarOpen),
+      }}
+    >
+      <Canvas action={canvasAction} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <ToolBar />
+    </Layout>
   );
 }

@@ -1,5 +1,5 @@
 export interface Drawing {
-  id: string;
+  _id: string;
   title: string;
   image?: string;
   data?: string;

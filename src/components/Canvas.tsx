@@ -12,6 +12,9 @@ import {
 } from "../utils/toolHandlers";
 import { drawPreview } from "../utils/previewDrawing";
 import ZoomControls from "./ZoomControls";
+import { useParams } from "react-router-dom";
+import { useDrawingStore } from "../store/drawingStore";
+// import Loader from "./Loader";
 
 // Utility function to get pen size from selected subtool
 const getPenSize = (selectedSubTool: string | null): number => {
@@ -37,6 +40,7 @@ export default function Canvas({ action }: CanvasProps) {
     selectedTool,
     selectedSubTool,
     addNode,
+    setNodes,
     nodes,
     removeNodes,
     setSelectedNode,
@@ -52,6 +56,28 @@ export default function Canvas({ action }: CanvasProps) {
     [],
   );
   const [isFreehandDrawing, setIsFreehandDrawing] = useState(false);
+  const nodesRef = useRef(nodes);
+
+  const params = useParams();
+
+
+  const { drawing, fetchDrawingById } = useDrawingStore();
+
+  const { updateDrawing } = useDrawingStore();
+
+  useEffect(() => {
+    if (params.id) {
+      fetchDrawingById(params.id);
+    }
+  }, [params.id, fetchDrawingById]);
+
+  useEffect(() => {
+    if (drawing && drawing.data) {
+      setNodes(JSON.parse(drawing.data));
+    } else {
+      setNodes([]);
+    }
+  }, [drawing, setNodes]);
 
   const {
     zoomPan,
@@ -281,7 +307,7 @@ export default function Canvas({ action }: CanvasProps) {
         ctx.save();
         ctx.translate(zoomPan.offsetX, zoomPan.offsetY);
         ctx.scale(zoomPan.scale, zoomPan.scale);
-        
+
         const color = useCanvasStore.getState().color;
         const penSize = getPenSize(selectedSubTool);
         ctx.strokeStyle = color;
@@ -350,8 +376,7 @@ export default function Canvas({ action }: CanvasProps) {
       // TODO: Implement undo
     } else if (action === "redo") {
       // TODO: Implement redo
-    }
-    else if (action === "save") {
+    } else if (action === "download") {
       const canvas = canvasRef.current;
       if (canvas) {
         const dataUrl = canvas.toDataURL("image/png");
@@ -360,8 +385,21 @@ export default function Canvas({ action }: CanvasProps) {
         link.href = dataUrl;
         link.click();
       }
+    } else if (action === "save") {
+      const payload = {
+        image: canvasRef.current?.toDataURL("image/png"),
+        data: JSON.stringify(nodesRef.current),
+      };
+
+      if (params.id) {
+        updateDrawing(params.id, payload);
+      }
     }
-  }, [action, clearCanvas, removeNodes]);
+  }, [action, clearCanvas, removeNodes, params, updateDrawing]);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   useEffect(() => {
     setCanvasSize();
@@ -369,6 +407,9 @@ export default function Canvas({ action }: CanvasProps) {
     draw(nodes);
   }, [setCanvasSize, clearCanvas, draw, nodes, zoomPan]);
 
+  // if (loading) {
+  //   return <Loader/>
+  // }
   return (
     <>
       <canvas
