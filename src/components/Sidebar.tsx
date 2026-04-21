@@ -1,16 +1,90 @@
-import { XIcon, Trash2Icon } from "lucide-react";
+import { XIcon, Trash2Icon, ChevronRightIcon } from "lucide-react";
 import { useCanvasStore } from "../store/canvasStore";
+import { useState } from "react";
+import type { CanvasNode } from "../types";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface AccordionItemProps {
+  node: CanvasNode;
+  isSelected: boolean;
+  onRemove: () => void;
+}
+
+function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="bg-white rounded-lg overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 ${
+          isSelected ? "border-2 border-blue-500" : ""
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <ChevronRightIcon
+            className={`w-4 h-4 transition-transform duration-200 ${
+              isOpen ? "rotate-90" : ""
+            }`}
+          />
+          <span className="text-xs text-gray-700 font-medium">{node.type}</span>
+        </div>
+        <button
+          onClick={onRemove}
+          className="p-1 hover:bg-red-50 rounded transition-colors"
+        >
+          <Trash2Icon className="w-3 h-3 text-red-500" />
+        </button>
+      </button>
+      
+      {isOpen && (
+        <div className="px-3 pb-3 border-t border-gray-200">
+          <div className="text-xs text-gray-500 space-y-1">
+            <div className="flex justify-between">
+              <span className="font-medium">Type:</span>
+              <span>{node.type}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">ID:</span>
+              <span className="font-mono text-xs">{node.id}</span>
+            </div>
+            {node.color && (
+              <div className="flex justify-between">
+                <span className="font-medium">Color:</span>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded border border-gray-300"
+                    style={{ backgroundColor: node.color }}
+                  />
+                  <span className="text-xs">{node.color}</span>
+                </div>
+              </div>
+            )}
+            {node.data && (
+              <div className="flex justify-between">
+                <span className="font-medium">Data:</span>
+                <span className="text-xs">{JSON.stringify(node.data)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { nodes, removeNode, updateNodeData, selectedNode } = useCanvasStore();
+  const { nodes, removeNode, selectedNode } = useCanvasStore();
+
   return (
     <div
-      className={`absolute right-0 top-0 bottom-0 w-64 bg-gray-100 p-4 border-l border-gray-300 transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+      className={`absolute right-0 top-0 bottom-0 w-64 bg-gray-100 p-4 border-l border-gray-300 transition-transform duration-300 ${
+        isOpen ? "translate-x-0" : "translate-x-full"
+      }`}
     >
       <header className="flex items-center justify-end">
         <button onClick={onClose}>
@@ -19,76 +93,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </header>
 
       <section className="flex flex-col gap-2">
-        <h2>Nodes</h2>
-        <div className="flex flex-col gap-2 overflow-y-auto h-[calc(100vh-150px)] hide-scrollbar">
-          {nodes.map((node) => (
-            <div
-              key={node.id}
-              className={`bg-white rounded-lg flex flex-col gap-2 p-3 ${selectedNode?.id === node.id ? "border-2 border-blue-500" : ""}`}
-            >
-              <header className="flex flex-row items-center justify-between gap-2">
-                <div className="text-sm text-gray-700 font-semibold">{node.type}</div>
-                <div>
-                  <button onClick={() => removeNode(node.id)}>
-                    <Trash2Icon className="w-3 h-3" />
-                  </button>
-                </div>
-              </header>
-              <section className="text-xs text-gray-500">
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs uppercase font-semibold">Start Point</div>
-                  <div className="flex flex-row gap-2 items-center">
-                    <p className="uppercase text-xs">X</p>
-                    <input
-                      type="number"
-                      value={node.x}
-                      className="w-14 border border-gray-300 rounded px-1 py-1 outline-none"
-                      onChange={(e) =>
-                        updateNodeData(node.id, {
-                          x: Number(e.target.value),
-                        })
-                      }
-                    />
-                    <p className="uppercase text-xs">Y</p>
-                    <input
-                      type="number"
-                      value={node.y}
-                      className="w-14 border border-gray-300 rounded px-1 py-1 outline-none"
-                      onChange={(e) =>
-                        updateNodeData(node.id, {
-                          y: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="text-sm font-semibold">End Point</div>
-                  <div className="flex flex-row gap-2 items-center">
-                    <p className="uppercase text-xs">X</p>
-                    <input
-                      type="number"
-                      value={node.x1}
-                      className="w-14 border border-gray-300 rounded px-1 py-1 outline-none"
-                      onChange={(e) =>
-                        updateNodeData(node.id, {
-                          x1: Number(e.target.value),
-                        })
-                      }
-                    />
-                    <p className="uppercase text-xs">Y</p>
-                    <input
-                      type="number"
-                      value={node.y1}
-                      className="w-14 border border-gray-300 rounded px-1 py-1 outline-none"
-                      onChange={(e) =>
-                        updateNodeData(node.id, {
-                          y1: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </section>
+        <h2 className="text-xs font-semibold text-gray-700">Nodes</h2>
+        <div className="flex flex-col gap-1 overflow-y-auto h-[calc(100vh-150px)] hide-scrollbar">
+          {nodes.length === 0 && (
+            <div className="text-xs text-gray-500 text-center py-4">
+              Please add some shapes or drawings to the canvas
             </div>
+          )}
+          {nodes.map((node) => (
+            <AccordionItem
+              key={node.id}
+              node={node}
+              isSelected={selectedNode?.id === node.id}
+              onRemove={() => removeNode(node.id)}
+            />
           ))}
         </div>
       </section>
