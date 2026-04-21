@@ -110,7 +110,7 @@ function drawPath({ ctx, node }: DrawingContext): void {
   if (drawData.points.length < 2) return;
 
   ctx.strokeStyle = drawData.strokeColor || node.color;
-  ctx.lineWidth = drawData.strokeWidth || 2;
+  ctx.lineWidth = drawData.strokeWidth || 2; // Use the actual stroke width from node data
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 

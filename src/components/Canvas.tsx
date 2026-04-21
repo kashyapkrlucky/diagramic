@@ -13,6 +13,20 @@ import {
 import { drawPreview } from "../utils/previewDrawing";
 import ZoomControls from "./ZoomControls";
 
+// Utility function to get pen size from selected subtool
+const getPenSize = (selectedSubTool: string | null): number => {
+  switch (selectedSubTool) {
+    case "Thin":
+      return 2;
+    case "Medium":
+      return 4;
+    case "Thick":
+      return 8;
+    default:
+      return 2; // Default to medium
+  }
+};
+
 interface CanvasProps {
   action: string;
 }
@@ -21,6 +35,7 @@ export default function Canvas({ action }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const {
     selectedTool,
+    selectedSubTool,
     addNode,
     nodes,
     removeNodes,
@@ -158,6 +173,7 @@ export default function Canvas({ action }: CanvasProps) {
         // Finish freehand drawing and create the node
         if (currentPath.length > 1) {
           const color = useCanvasStore.getState().color;
+          const penSize = getPenSize(selectedSubTool);
           const drawNode: CanvasNode = {
             id: Date.now().toString(),
             type: "Draw",
@@ -167,7 +183,7 @@ export default function Canvas({ action }: CanvasProps) {
             data: {
               points: currentPath,
               strokeColor: color,
-              strokeWidth: 2,
+              strokeWidth: penSize,
               strokeStyle: "solid" as const,
             } as any,
           };
@@ -200,6 +216,7 @@ export default function Canvas({ action }: CanvasProps) {
     },
     [
       selectedTool,
+      selectedSubTool,
       addNode,
       startX,
       startY,
@@ -267,10 +284,11 @@ export default function Canvas({ action }: CanvasProps) {
         ctx.save();
         ctx.translate(zoomPan.offsetX, zoomPan.offsetY);
         ctx.scale(zoomPan.scale, zoomPan.scale);
-
+        
         const color = useCanvasStore.getState().color;
+        const penSize = getPenSize(selectedSubTool);
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = penSize;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.beginPath();
@@ -309,6 +327,7 @@ export default function Canvas({ action }: CanvasProps) {
       clearCanvas,
       draw,
       selectedTool,
+      selectedSubTool,
       getMousePosition,
       nodes,
       screenToCanvas,

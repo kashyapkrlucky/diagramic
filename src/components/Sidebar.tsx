@@ -18,7 +18,7 @@ function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden">
+    <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 ${
@@ -42,7 +42,7 @@ function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
       </button>
       
       {isOpen && (
-        <div className="px-3 pb-3 border-t border-gray-200">
+        <div className="px-3 py-3 border-t border-gray-200">
           <div className="text-xs text-gray-500 space-y-1">
             <div className="flex justify-between">
               <span className="font-medium">Type:</span>
@@ -64,12 +64,12 @@ function AccordionItem({ node, isSelected, onRemove }: AccordionItemProps) {
                 </div>
               </div>
             )}
-            {node.data && (
+            {/* {node.data && (
               <div className="flex justify-between">
                 <span className="font-medium">Data:</span>
                 <span className="text-xs">{JSON.stringify(node.data)}</span>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       )}
@@ -82,32 +82,34 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <div
-      className={`absolute right-0 top-0 bottom-0 w-64 bg-gray-100 p-4 border-l border-gray-300 transition-transform duration-300 ${
+      className={`absolute right-0 top-0 bottom-0 w-64 bg-gray-100 border-l border-gray-300 transition-transform duration-300 ${
         isOpen ? "translate-x-0" : "translate-x-full"
       }`}
     >
-      <header className="flex items-center justify-end">
+      <header className="flex items-center justify-end p-4">
         <button onClick={onClose}>
           <XIcon className="w-4 h-4" />
         </button>
       </header>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-xs font-semibold text-gray-700">Nodes</h2>
-        <div className="flex flex-col gap-1 overflow-y-auto h-[calc(100vh-150px)] hide-scrollbar">
+      <section className="px-4 pb-4">
+        <h2 className="text-xs font-semibold text-gray-700 mb-2">Nodes</h2>
+        <div className="overflow-y-auto hide-scrollbar" style={{ height: 'calc(100vh - 100px)' }}>
           {nodes.length === 0 && (
             <div className="text-xs text-gray-500 text-center py-4">
               Please add some shapes or drawings to the canvas
             </div>
           )}
-          {nodes.map((node) => (
-            <AccordionItem
-              key={node.id}
-              node={node}
-              isSelected={selectedNode?.id === node.id}
-              onRemove={() => removeNode(node.id)}
-            />
-          ))}
+          <div className="flex flex-col gap-1">
+            {nodes.map((node) => (
+              <AccordionItem
+                key={node.id}
+                node={node}
+                isSelected={selectedNode?.id === node.id}
+                onRemove={() => removeNode(node.id)}
+              />
+            ))}
+          </div>
         </div>
       </section>
     </div>

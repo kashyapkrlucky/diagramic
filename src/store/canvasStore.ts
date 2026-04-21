@@ -4,12 +4,12 @@ import { tools } from "../components/ToolListing";
 
 interface CanvasStore {
   tools: Tool[];
-  subTools: Tool[];
+  subTools: {name: string}[];
   setSubTools: (subTools: Tool[]) => void;
   selectedTool: ToolType;
   setSelectedTool: (tool: ToolType) => void;
-  selectedSubTool: ToolType | string | null;
-  setSelectedSubTool: (tool: ToolType | string) => void;
+  selectedSubTool: string | null;
+  setSelectedSubTool: (tool: string) => void;
   color: string;
   setColor: (color: string) => void;
 
@@ -28,13 +28,15 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   tools: tools,
   subTools: [],
   setSubTools: (subTools: Tool[]) => set({ subTools }),
-  selectedTool: tools[0].name,
+  selectedTool: tools[0].name as ToolType,
   setSelectedTool: (tool: ToolType) => {
-    set({ selectedTool: tool, subTools: [] });
+    set({
+      selectedTool: tool,
+      subTools: tools.find((t) => t.name === tool)?.subTools || [],
+    });
   },
   selectedSubTool: null,
-  setSelectedSubTool: (tool: ToolType | string) =>
-    set({ selectedSubTool: tool }),
+  setSelectedSubTool: (tool: string) => set({ selectedSubTool: tool }),
   color: "#000000",
   setColor: (color: string) => set({ color }),
 

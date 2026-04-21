@@ -11,9 +11,10 @@ import {
   StickyNoteIcon,
 } from "lucide-react";
 import { ToolType } from "../types";
+import type { Tool } from "../types";
 
-export const tools = [
-  {
+export const tools: Tool[] = [
+  { 
     name: ToolType.Select,
     icon: <MousePointer2Icon className="w-4 h-4" />,
     subTools: [],
@@ -21,7 +22,17 @@ export const tools = [
   {
     name: ToolType.Draw,
     icon: <LineSquiggleIcon className="w-4 h-4" />,
-    subTools: [],
+    subTools: [
+      {
+        name: "Thin",
+      },
+      {
+        name: "Medium",
+      },
+      {
+        name: "Thick",
+      },
+    ],
   },
   {
     name: ToolType.Square,

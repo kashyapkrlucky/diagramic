@@ -17,7 +17,7 @@ export type ToolType = typeof ToolType[keyof typeof ToolType]
 export interface Tool {
   name: string;
   icon: React.ReactNode;
-  subTools: Tool[];
+  subTools: {name: string}[];
 }
 
 export interface Square {
