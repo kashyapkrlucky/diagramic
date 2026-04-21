@@ -1,5 +1,4 @@
 import ToolBar from "./components/ToolBar";
-import ToolOptions from "./components/ToolOptions";
 import NavBar from "./components/NavBar";
 
 import { useState } from "react";
@@ -21,7 +20,6 @@ function App() {
         <Canvas action={canvasAction} />
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <ToolBar />
-        <ToolOptions />
       </main>
     </div>
   );

@@ -10,6 +10,8 @@ interface CanvasStore {
   setSelectedTool: (tool: ToolType) => void;
   selectedSubTool: string | null;
   setSelectedSubTool: (tool: string) => void;
+  showSubTools: boolean;
+  setShowSubTools: (show: boolean) => void;
   color: string;
   setColor: (color: string) => void;
 
@@ -33,10 +35,13 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     set({
       selectedTool: tool,
       subTools: tools.find((t) => t.name === tool)?.subTools || [],
+      showSubTools: true,
     });
   },
   selectedSubTool: null,
-  setSelectedSubTool: (tool: string) => set({ selectedSubTool: tool }),
+  setSelectedSubTool: (tool: string) => set({ selectedSubTool: tool, showSubTools: false }),
+  showSubTools: false,
+  setShowSubTools: (show: boolean) => set({ showSubTools: show }),
   color: "#000000",
   setColor: (color: string) => set({ color }),
 

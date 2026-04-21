@@ -82,7 +82,7 @@ export interface Annotation {
   text: string;
 }
 
-export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | Arrow | Text | Annotation;
+export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | Arrow | Text | Annotation | Draw;
 
 export interface CanvasNode {
   id: string;

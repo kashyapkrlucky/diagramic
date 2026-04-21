@@ -8,7 +8,7 @@ import {
   EllipseIcon,
   CableIcon,
   TextCursorIcon,
-  StickyNoteIcon,
+  // StickyNoteIcon,
 } from "lucide-react";
 import { ToolType } from "../types";
 import type { Tool } from "../types";
@@ -69,9 +69,9 @@ export const tools: Tool[] = [
     icon: <TextCursorIcon className="w-4 h-4" />,
     subTools: [],
   },
-  {
-    name: ToolType.Annotation,
-    icon: <StickyNoteIcon className="w-4 h-4" />,
-    subTools: [],
-  },
+  // {
+  //   name: ToolType.Annotation,
+  //   icon: <StickyNoteIcon className="w-4 h-4" />,
+  //   subTools: [],
+  // },
 ];

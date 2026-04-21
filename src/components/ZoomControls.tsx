@@ -14,7 +14,7 @@ export default function ZoomControls({
   onResetZoom,
 }: ZoomControlsProps) {
   return (
-    <div className="absolute bottom-5 left-5 bg-white border border-gray-300 rounded-lg shadow-md p-2 flex items-center gap-2">
+    <div className="absolute bottom-4 left-5 bg-white border border-gray-300 rounded-lg shadow-md p-2 flex items-center gap-2">
       <button
         className="p-1 hover:bg-gray-100 rounded transition-colors"
         onClick={onZoomOut}

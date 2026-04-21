@@ -57,7 +57,6 @@ export default function Canvas({ action }: CanvasProps) {
     zoomPan,
     zoomIn,
     zoomOut,
-    setZoomWithOffset,
     resetZoom,
     startPan,
     pan,
@@ -145,8 +144,6 @@ export default function Canvas({ action }: CanvasProps) {
       setSelectedNode,
       screenToCanvas,
       startPan,
-      currentPath,
-      isFreehandDrawing,
     ],
   );
 
@@ -185,7 +182,7 @@ export default function Canvas({ action }: CanvasProps) {
               strokeColor: color,
               strokeWidth: penSize,
               strokeStyle: "solid" as const,
-            } as any,
+            },
           };
           addNode(drawNode);
         }
@@ -345,38 +342,24 @@ export default function Canvas({ action }: CanvasProps) {
     ],
   );
 
-  const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.max(
-        0.1,
-        Math.min(5.0, zoomPan.scale * scaleFactor),
-      );
-
-      // Calculate zoom center point (top center of canvas)
-      const canvasRect = canvas.getBoundingClientRect();
-      const centerX = canvasRect.width / 2;
-      const centerY = 0; // Top of canvas
-
-      // Calculate new offset to zoom towards top center
-      const scaleRatio = newScale / zoomPan.scale;
-      const newOffsetX = centerX - (centerX - zoomPan.offsetX) * scaleRatio;
-      const newOffsetY = centerY - (centerY - zoomPan.offsetY) * scaleRatio;
-
-      // Update both zoom and pan offset
-      setZoomWithOffset(newScale, newOffsetX, newOffsetY);
-    },
-    [zoomPan.scale, zoomPan.offsetX, zoomPan.offsetY, setZoomWithOffset],
-  );
-
   useEffect(() => {
     if (action === "clear") {
       clearCanvas();
       removeNodes();
+    } else if (action === "undo") {
+      // TODO: Implement undo
+    } else if (action === "redo") {
+      // TODO: Implement redo
+    }
+    else if (action === "save") {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "lets-draw.png";
+        link.href = dataUrl;
+        link.click();
+      }
     }
   }, [action, clearCanvas, removeNodes]);
 
@@ -404,7 +387,6 @@ export default function Canvas({ action }: CanvasProps) {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
       />
       <ZoomControls
         zoomPercentage={getZoomPercentage()}
