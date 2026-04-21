@@ -1,27 +1,17 @@
-import ToolBar from "./components/ToolBar";
-import NavBar from "./components/NavBar";
-
-import { useState } from "react";
-import Canvas from "./components/Canvas";
-import Sidebar from "./components/Sidebar";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Editor from "./pages/Editor";
+import SignIn from "./pages/SignIn";
 
 function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [canvasAction, setCanvasAction] = useState<string>("");
-  
-  const onCanvasAction = (action: string) => {
-    setCanvasAction(action);
-  };
-
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
-      <NavBar onCanvasAction={onCanvasAction} isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <main className="flex-1 relative">
-        <Canvas action={canvasAction} />
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <ToolBar />
-      </main>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/editor/:id" element={<Editor />} />
+      </Routes>
+    </Router>
   );
 }
 

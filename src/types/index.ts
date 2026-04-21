@@ -1,3 +1,12 @@
+export interface Drawing {
+  id: string;
+  title: string;
+  image?: string;
+  data?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const ToolType = {
   Select: "Select",
   Draw: "Draw",
