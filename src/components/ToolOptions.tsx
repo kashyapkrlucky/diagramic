@@ -11,9 +11,9 @@ export default function ToolOptions() {
       {subTools.map((tool) => (
         <button
           key={tool.name}
-          onClick={() => setSelectedSubTool(tool)}
+          onClick={() => setSelectedSubTool(tool.name)}
           className={
-            typeof selectedSubTool === 'string' ? (selectedSubTool === tool.name ? "text-purple-500" : "") : selectedSubTool?.name === tool.name ? "text-purple-500" : ""
+            selectedSubTool === tool.name ? "text-purple-500" : ""
           }
         >
           {tool.icon}

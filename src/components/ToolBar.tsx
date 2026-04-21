@@ -1,5 +1,5 @@
 import { useCanvasStore } from "../store/canvasStore";
-import type { Tool } from "../types";
+import type { Tool, ToolType } from "../types";
 
 export default function ToolBar() {
   const { tools, selectedTool, setSelectedTool } = useCanvasStore();
@@ -9,16 +9,8 @@ export default function ToolBar() {
       {tools.map((tool: Tool) => (
         <button
           key={tool.name}
-          onClick={() => setSelectedTool(tool)}
-          className={
-            typeof selectedTool === "string"
-              ? selectedTool === tool.name
-                ? "text-red-500"
-                : ""
-              : selectedTool?.name === tool.name
-                ? "text-red-500"
-                : ""
-          }
+          onClick={() => setSelectedTool(tool.name as ToolType)}
+          className={selectedTool === tool.name ? "text-red-500" : ""}
         >
           {tool.icon}
         </button>

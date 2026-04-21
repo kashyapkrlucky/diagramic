@@ -89,9 +89,17 @@ export type NodeDataType = Square | SquareDashed | Circle | Ellipse | Diamond | 
 
 export interface CanvasNode {
   id: string;
-  tool: ToolType;
-  subTool: ToolType | null;
+  type: ToolType;
   color: string;
+  x: number;
+  y: number;
+  x1?: number;
+  y1?: number;
+  text?: string;
+  fontSize?: number;
+  width?: number;
+  height?: number;
+  radius?: number;
   data?: NodeDataType | null;
 }
 

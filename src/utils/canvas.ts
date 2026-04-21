@@ -28,10 +28,10 @@ function setupTextStyle(
 }
 
 function drawCircle({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2 } = node.data as { x1: number; y1: number; x2: number };
-  const radius = (x2 - x1) / 2;
-  const centerX = x1 + radius;
-  const centerY = y1 + radius;
+  const { x, y, x1, y1 } = node;
+  const radius = Math.sqrt(Math.pow((x1 || x) - x, 2) + Math.pow((y1 || y) - y, 2)) / 2;
+  const centerX = x + radius;
+  const centerY = y + radius;
 
   setupShapeStyle(ctx, node.color);
   ctx.beginPath();
@@ -41,16 +41,11 @@ function drawCircle({ ctx, node }: DrawingContext): void {
 }
 
 function drawEllipse({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
-  const radiusX = (x2 - x1) / 2;
-  const radiusY = (y2 - y1) / 2;
-  const centerX = x1 + radiusX;
-  const centerY = y1 + radiusY;
+  const { x, y, x1, y1 } = node;
+  const radiusX = ((x1 || x) - x) / 2;
+  const radiusY = ((y1 || y) - y) / 2;
+  const centerX = x + radiusX;
+  const centerY = y + radiusY;
 
   setupShapeStyle(ctx, node.color);
   ctx.beginPath();
@@ -60,16 +55,11 @@ function drawEllipse({ ctx, node }: DrawingContext): void {
 }
 
 function drawDiamond({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
-  const centerX = (x1 + x2) / 2;
-  const centerY = (y1 + y2) / 2;
-  const width = Math.abs(x2 - x1);
-  const height = Math.abs(y2 - y1);
+  const { x, y, x1, y1 } = node;
+  const centerX = ((x1 || x) + x) / 2;
+  const centerY = ((y1 || y) + y) / 2;
+  const width = Math.abs((x1 || x) - x);
+  const height = Math.abs((y1 || y) - y);
 
   setupShapeStyle(ctx, node.color);
   ctx.beginPath();
@@ -83,21 +73,16 @@ function drawDiamond({ ctx, node }: DrawingContext): void {
 }
 
 function drawSquare({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
-  const width = x2 - x1;
-  const height = y2 - y1;
+  const { x, y, x1, y1 } = node;
+  const width = (x1 || x) - x;
+  const height = (y1 || y) - y;
 
   setupShapeStyle(ctx, node.color);
   ctx.beginPath();
-  ctx.roundRect(x1, y1, width, height, DEFAULT_BORDER_RADIUS);
+  ctx.roundRect(x, y, width, height, DEFAULT_BORDER_RADIUS);
   ctx.fill();
 
-  if (node.tool === ToolType.SquareDashed) {
+  if (node.type === ToolType.SquareDashed) {
     ctx.setLineDash(DEFAULT_DASH_PATTERN);
   }
   ctx.stroke();
@@ -105,47 +90,42 @@ function drawSquare({ ctx, node }: DrawingContext): void {
 }
 
 function drawText({ ctx, node }: DrawingContext): void {
-  const { x, y, text } = node.data as { x: number; y: number; text: string };
+  const { x, y, text } = node;
 
   setupTextStyle(ctx, DEFAULT_FONT_SIZE, node.color);
-  ctx.fillText(text, x, y);
+  ctx.fillText(text || '', x, y);
 }
 
 function drawAnnotation({ ctx, node }: DrawingContext): void {
-  const { x, y } = node.data as { x: number; y: number };
+  const { x, y } = node;
 
   setupTextStyle(ctx, DEFAULT_ANNOTATION_FONT_SIZE, node.color);
   ctx.fillText("📝", x, y);
 }
 
 function drawArrow({ ctx, node }: DrawingContext): void {
-  const { x1, y1, x2, y2 } = node.data as {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  };
+  const { x, y, x1, y1 } = node;
 
   setupShapeStyle(ctx, node.color);
   // Calculate control points for bezier curve
-  const dx = x2 - x1;
-  const cx1 = x1 + dx * 0.5;
-  const cy1 = y1;
-  const cx2 = x1 + dx * 0.5;
-  const cy2 = y2;
+  const dx = (x1 || x) - x;
+  const cx1 = x + dx * 0.5;
+  const cy1 = y;
+  const cx2 = x + dx * 0.5;
+  const cy2 = y1 || y;
 
   // Draw curved path
   ctx.strokeStyle = node.color;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2);
+  ctx.moveTo(x, y);
+  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x1 || x, y1 || y);
   ctx.stroke();
 
   // Draw arrowhead
-  const angle = Math.atan2(y2 - cy2, x2 - cx2);
+  const angle = Math.atan2((y1 || y) - cy2, (x1 || x) - cx2);
   ctx.save();
-  ctx.translate(x2, y2);
+  ctx.translate(x1 || x, y1 || y);
   ctx.rotate(angle);
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -178,17 +158,16 @@ export function drawShape(
   ctx: CanvasRenderingContext2D,
   node: CanvasNode,
 ): void {
-  const handler = DRAW_HANDLERS[node.tool];
+  const handler = DRAW_HANDLERS[node.type];
 
   if (!handler) {
-    console.warn("Unsupported tool:", node.tool, node);
+    console.warn("Unsupported tool:", node.type, node);
     return;
   }
 
-  if (!node.data) {
-    console.warn("No data provided for tool:", node.tool);
+  if (!node) {
+    console.warn("No data provided for tool");
     return;
   }
-
   handler({ ctx, node });
 }

@@ -6,16 +6,18 @@ interface CanvasStore {
   tools: Tool[];
   subTools: Tool[];
   setSubTools: (subTools: Tool[]) => void;
-  selectedTool: Tool | ToolType | null;
-  setSelectedTool: (tool: Tool | ToolType) => void;
-  selectedSubTool: Tool | ToolType | null;
-  setSelectedSubTool: (tool: Tool | ToolType) => void;
+  selectedTool: ToolType;
+  setSelectedTool: (tool: ToolType) => void;
+  selectedSubTool: ToolType | string | null;
+  setSelectedSubTool: (tool: ToolType | string) => void;
   color: string;
   setColor: (color: string) => void;
 
   nodes: CanvasNode[];
   setNodes: (nodes: CanvasNode[]) => void;
   addNode: (node: CanvasNode) => void;
+  selectedNode: CanvasNode | null;
+  setSelectedNode: (node: CanvasNode) => void;
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: () => void;
@@ -25,16 +27,13 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   tools: tools,
   subTools: [],
   setSubTools: (subTools: Tool[]) => set({ subTools }),
-  selectedTool: tools[0],
-  setSelectedTool: (tool: Tool | ToolType) => {
-    if (typeof tool === 'string') {
-      set({ selectedTool: tool, subTools: [] });
-    } else {
-      set({ selectedTool: tool, subTools: tool.subTools || [] });
-    }
+  selectedTool: tools[0].name,
+  setSelectedTool: (tool: ToolType) => {
+    set({ selectedTool: tool, subTools: [] });
   },
   selectedSubTool: null,
-  setSelectedSubTool: (tool: Tool | ToolType) => set({ selectedSubTool: tool }),
+  setSelectedSubTool: (tool: ToolType | string) =>
+    set({ selectedSubTool: tool }),
   color: "#000000",
   setColor: (color: string) => set({ color }),
 
@@ -42,16 +41,17 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setNodes: (nodes: CanvasNode[]) => set({ nodes }),
   addNode: (node: CanvasNode) =>
     set((state) => ({ nodes: [...state.nodes, node] })),
+  selectedNode: null,
+  setSelectedNode: (node: CanvasNode) => {
+    set({ selectedNode: node });
+  },
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) =>
     set((state) => ({
       nodes: state.nodes.map((node) => {
         if (node.id === nodeId) {
           return {
             ...node,
-            data: node.data ? {
-              ...node.data,
-              ...data,
-            } as NodeDataType : null,
+            ...data,
           };
         }
         return node;

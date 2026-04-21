@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useCanvasStore } from "../store/canvasStore";
 import { ToolType, type CanvasNode } from "../types";
 import { drawShape } from "../utils/canvas";
+import { useMousePosition, useNodeAtPosition } from "../hooks/usePosition";
 
 interface CanvasProps {
   action: string;
@@ -10,9 +11,13 @@ interface CanvasProps {
 export default function Canvas({ action }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { selectedTool, addNode, nodes, removeNodes } = useCanvasStore();
+  const { selectedTool, addNode, nodes, removeNodes, setSelectedNode } =
+    useCanvasStore();
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
+
+  const { getMousePosition } = useMousePosition(canvasRef);
+  const { getNodeAtPosition } = useNodeAtPosition(nodes);
 
   const getContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -32,11 +37,34 @@ export default function Canvas({ action }: CanvasProps) {
     ctx.scale(dpr, dpr);
   }, [getContext]);
 
+  // Draw grid on canvas
+  const drawGrid = useCallback(() => {
+    const ctx = getContext();
+    if (!ctx) return;
+
+    // set bg color
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    // draw dotted grid
+    ctx.fillStyle = "#e7e7e7";
+    const spacing = 15;
+
+    for (let x = spacing; x < ctx.canvas.width; x += spacing) {
+      for (let y = spacing; y < ctx.canvas.height; y += spacing) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }, [getContext]);
+
   const clearCanvas = useCallback(() => {
     const ctx = getContext();
     if (!ctx) return;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }, [getContext]);
+    drawGrid();
+  }, [getContext, drawGrid]);
 
   const draw = useCallback(() => {
     const ctx = getContext();
@@ -44,7 +72,7 @@ export default function Canvas({ action }: CanvasProps) {
 
     if (nodes.length > 0) {
       nodes.forEach((node: CanvasNode) => {
-        if (!node.data) return;
+        if (!node) return;
         drawShape(ctx, node);
       });
     }
@@ -54,16 +82,18 @@ export default function Canvas({ action }: CanvasProps) {
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = getMousePosition(e);
 
       const color = useCanvasStore.getState().color;
       if (!selectedTool) return;
 
-      const toolName =
-        typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+      const existingNode = getNodeAtPosition(x, y);
+      if (existingNode) {
+        setSelectedNode(existingNode);
 
+        return;
+      }
+      const toolName = selectedTool;
       if (
         toolName === ToolType.Square ||
         toolName === ToolType.SquareDashed ||
@@ -75,43 +105,49 @@ export default function Canvas({ action }: CanvasProps) {
         setStartX(x);
         setStartY(y);
         return;
-      } else {
+      } else if (
+        toolName === ToolType.Text ||
+        toolName === ToolType.Annotation
+      ) {
         const node: CanvasNode = {
           id: Date.now().toString(),
-          tool: toolName as ToolType,
-          subTool: null,
-          data: null,
+          type: toolName as ToolType,
           color: color,
+          x: x,
+          y: y,
+          text: "Text",
         };
-
-        if (toolName === ToolType.Select) {
-          // No data needed for select tool
-        } else if (toolName === ToolType.Text || toolName === ToolType.Annotation) {
-          node.data = {
-            x: x,
-            y: y,
-            text: "Text",
-          };
-        }
         addNode(node);
+      } else if (toolName === ToolType.Select) {
+        // No action needed
       }
     },
-    [selectedTool, addNode, setStartX, setStartY],
+    [
+      selectedTool,
+      addNode,
+      setStartX,
+      setStartY,
+      getMousePosition,
+      getNodeAtPosition,
+      setSelectedNode,
+    ],
   );
 
   const handleMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = getMousePosition(e);
+
+      const existingNode = getNodeAtPosition(x, y);
+      if (existingNode) {
+        return;
+      }
 
       const color = useCanvasStore.getState().color;
       if (!selectedTool) return;
 
-      const toolName =
-        typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+      const toolName = selectedTool;
 
       if (
         toolName === ToolType.Square ||
@@ -121,24 +157,32 @@ export default function Canvas({ action }: CanvasProps) {
         toolName === ToolType.Diamond ||
         toolName === ToolType.Arrow
       ) {
-        addNode({
-          id: Date.now().toString(),
-          tool: toolName as ToolType,
-          subTool: null,
-          data: {
-            x1: startX,
-            y1: startY,
-            x2: x,
-            y2: y,
-          },
-          color: color,
-        });
+        if (!startX || !startY) return;
+        if (startX < x && startY < y) {
+          addNode({
+            id: Date.now().toString(),
+            type: toolName as ToolType,
+            color: color,
+            x: startX,
+            y: startY,
+            x1: x,
+            y1: y,
+          });
+        }
         setStartX(0);
         setStartY(0);
+
         return;
       }
     },
-    [selectedTool, addNode, startX, startY],
+    [
+      selectedTool,
+      addNode,
+      startX,
+      startY,
+      getMousePosition,
+      getNodeAtPosition,
+    ],
   );
 
   const handleMouseMove = useCallback(
@@ -146,9 +190,7 @@ export default function Canvas({ action }: CanvasProps) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       if (startX && startY) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const { x, y } = getMousePosition(e);
         const color = useCanvasStore.getState().color;
         const ctx = getContext();
         if (!ctx) return;
@@ -156,13 +198,10 @@ export default function Canvas({ action }: CanvasProps) {
         // Clear canvas and redraw existing shapes
         clearCanvas();
         draw();
-
-        console.log("selectedTool", selectedTool);
-        const toolName =
-          typeof selectedTool === "string" ? selectedTool : selectedTool.name;
+        const toolName = selectedTool;
         if (toolName === ToolType.Arrow) {
           // Draw arrow preview
-          ctx.strokeStyle = color;
+          ctx.strokeStyle = "#cccccc";
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(startX, startY);
@@ -178,7 +217,15 @@ export default function Canvas({ action }: CanvasProps) {
         }
       }
     },
-    [startX, startY, getContext, clearCanvas, draw, selectedTool],
+    [
+      startX,
+      startY,
+      getContext,
+      clearCanvas,
+      draw,
+      selectedTool,
+      getMousePosition,
+    ],
   );
 
   useEffect(() => {
@@ -202,7 +249,7 @@ export default function Canvas({ action }: CanvasProps) {
     setCanvasSize();
     clearCanvas();
     draw();
-  }, [setCanvasSize, clearCanvas, draw]);
+  }, [setCanvasSize, clearCanvas, draw, drawGrid]);
 
   return (
     <canvas
