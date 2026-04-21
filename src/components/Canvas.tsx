@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCanvasStore } from "../store/canvasStore";
+import { type CanvasNode } from "../types";
 import { useMousePosition, useNodeAtPosition } from "../hooks/usePosition";
 import { useCanvas } from "../hooks/useCanvas";
-import { isShapeTool, isTextTool, createTextNode, createShapeNode } from "../utils/toolHandlers";
+import { useZoomPan } from "../hooks/useZoomPan";
+import {
+  isShapeTool,
+  isTextTool,
+  createTextNode,
+  createShapeNode,
+} from "../utils/toolHandlers";
 import { drawPreview } from "../utils/previewDrawing";
+import ZoomControls from "./ZoomControls";
 
 interface CanvasProps {
   action: string;
@@ -11,38 +19,120 @@ interface CanvasProps {
 
 export default function Canvas({ action }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { selectedTool, addNode, nodes, removeNodes, setSelectedNode } = useCanvasStore();
+  const {
+    selectedTool,
+    addNode,
+    nodes,
+    removeNodes,
+    setSelectedNode,
+    updateNode,
+  } = useCanvasStore();
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>(
+    [],
+  );
+  const [isFreehandDrawing, setIsFreehandDrawing] = useState(false);
+
+  const {
+    zoomPan,
+    zoomIn,
+    zoomOut,
+    setZoomWithOffset,
+    resetZoom,
+    startPan,
+    pan,
+    endPan,
+    screenToCanvas,
+    getZoomPercentage,
+  } = useZoomPan();
 
   const { getMousePosition } = useMousePosition(canvasRef);
   const { getNodeAtPosition } = useNodeAtPosition(nodes);
-  const { getContext, setCanvasSize, clearCanvas, draw } = useCanvas(canvasRef);
+  const { getContext, setCanvasSize, clearCanvas, draw } = useCanvas(
+    canvasRef,
+    zoomPan,
+  );
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const { x, y } = getMousePosition(e);
+      const canvasCoords = screenToCanvas(x, y);
 
-      if (!selectedTool) return;
+      if (e.shiftKey) {
+        // Start panning with shift key
+        setIsPanning(true);
+        startPan(x, y);
+        return;
+      }
 
-      const existingNode = getNodeAtPosition(x, y);
+      const existingNode = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
+
+      if (selectedTool === "Select") {
+        if (existingNode) {
+          // Start dragging the node
+          setDraggedNode(existingNode.id);
+          setDragOffset({
+            x: canvasCoords.x - existingNode.x,
+            y: canvasCoords.y - existingNode.y,
+          });
+          setSelectedNode(existingNode);
+        } else {
+          // Start panning on empty canvas with select tool
+          setIsPanning(true);
+          startPan(x, y);
+        }
+        return;
+      }
+
+      if (!selectedTool) {
+        // Start panning when no tool is selected
+        setIsPanning(true);
+        startPan(x, y);
+        return;
+      }
+
       if (existingNode) {
         setSelectedNode(existingNode);
         return;
       }
 
       if (isTextTool(selectedTool)) {
-        const node = createTextNode(x, y, selectedTool);
+        const node = createTextNode(
+          canvasCoords.x,
+          canvasCoords.y,
+          selectedTool,
+        );
         addNode(node);
+      } else if (selectedTool === "Draw") {
+        // Start freehand drawing
+        setIsFreehandDrawing(true);
+        setCurrentPath([{ x: canvasCoords.x, y: canvasCoords.y }]);
       } else if (isShapeTool(selectedTool)) {
-        setStartX(x);
-        setStartY(y);
+        setIsDrawing(true);
+        setStartX(canvasCoords.x);
+        setStartY(canvasCoords.y);
       }
-      // Select tool requires no action
     },
-    [selectedTool, addNode, setStartX, setStartY, getMousePosition, getNodeAtPosition, setSelectedNode]
+    [
+      selectedTool,
+      addNode,
+      setStartX,
+      setStartY,
+      getMousePosition,
+      getNodeAtPosition,
+      setSelectedNode,
+      screenToCanvas,
+      startPan,
+      currentPath,
+      isFreehandDrawing,
+    ],
   );
 
   const handleMouseUp = useCallback(
@@ -50,32 +140,149 @@ export default function Canvas({ action }: CanvasProps) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const { x, y } = getMousePosition(e);
+      const canvasCoords = screenToCanvas(x, y);
 
-      const existingNode = getNodeAtPosition(x, y);
-      if (existingNode) {
+      if (isPanning) {
+        endPan();
+        setIsPanning(false);
         return;
       }
 
-      if (!selectedTool || !isShapeTool(selectedTool)) return;
+      if (draggedNode) {
+        setDraggedNode(null);
+        setDragOffset({ x: 0, y: 0 });
+        return;
+      }
 
-      const node = createShapeNode(startX, startY, x, y, selectedTool);
+      if (isFreehandDrawing) {
+        // Finish freehand drawing and create the node
+        if (currentPath.length > 1) {
+          const color = useCanvasStore.getState().color;
+          const drawNode: CanvasNode = {
+            id: Date.now().toString(),
+            type: "Draw",
+            color: color,
+            x: currentPath[0].x,
+            y: currentPath[0].y,
+            data: {
+              points: currentPath,
+              strokeColor: color,
+              strokeWidth: 2,
+              strokeStyle: "solid" as const,
+            } as any,
+          };
+          addNode(drawNode);
+        }
+        setIsFreehandDrawing(false);
+        setCurrentPath([]);
+        return;
+      }
+
+      if (!isDrawing || !selectedTool || !isShapeTool(selectedTool)) {
+        setIsDrawing(false);
+        return;
+      }
+
+      const node = createShapeNode(
+        startX,
+        startY,
+        canvasCoords.x,
+        canvasCoords.y,
+        selectedTool,
+      );
       if (node) {
         addNode(node);
       }
-      
+
       setStartX(0);
       setStartY(0);
+      setIsDrawing(false);
     },
-    [selectedTool, addNode, startX, startY, getMousePosition, getNodeAtPosition]
+    [
+      selectedTool,
+      addNode,
+      startX,
+      startY,
+      getMousePosition,
+      screenToCanvas,
+      endPan,
+      isPanning,
+      isDrawing,
+      draggedNode,
+      currentPath,
+      isFreehandDrawing,
+    ],
   );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
-      if (startX && startY) {
-        const { x, y } = getMousePosition(e);
+      const { x, y } = getMousePosition(e);
+
+      if (isPanning) {
+        pan(x, y);
+        return;
+      }
+
+      if (draggedNode) {
+        const canvasCoords = screenToCanvas(x, y);
+        const newX = canvasCoords.x - dragOffset.x;
+        const newY = canvasCoords.y - dragOffset.y;
+
+        // Update node position
+        updateNode(draggedNode, { x: newX, y: newY });
+
+        // Update x1 and y1 if they exist (for shapes)
+        const node = nodes.find((n) => n.id === draggedNode);
+        if (node && node.x1 !== undefined && node.y1 !== undefined) {
+          const deltaX = newX - node.x;
+          const deltaY = newY - node.y;
+          updateNode(draggedNode, {
+            x: newX,
+            y: newY,
+            x1: node.x1 + deltaX,
+            y1: node.y1 + deltaY,
+          });
+        }
+
+        return;
+      }
+
+      if (isFreehandDrawing) {
+        const canvasCoords = screenToCanvas(x, y);
+        setCurrentPath((prev) => [
+          ...prev,
+          { x: canvasCoords.x, y: canvasCoords.y },
+        ]);
+
+        // Draw the current path
+        const ctx = getContext();
+        if (!ctx) return;
+
+        clearCanvas();
+        draw(nodes);
+
+        // Draw current freehand path with proper transformations
+        ctx.save();
+        ctx.translate(zoomPan.offsetX, zoomPan.offsetY);
+        ctx.scale(zoomPan.scale, zoomPan.scale);
+
+        const color = useCanvasStore.getState().color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(currentPath[0].x, currentPath[0].y);
+        for (let i = 1; i < currentPath.length; i++) {
+          ctx.lineTo(currentPath[i].x, currentPath[i].y);
+        }
+        ctx.lineTo(canvasCoords.x, canvasCoords.y);
+        ctx.stroke();
+        ctx.restore();
+      } else if (isDrawing) {
+        const canvasCoords = screenToCanvas(x, y);
         const ctx = getContext();
         if (!ctx) return;
 
@@ -84,10 +291,67 @@ export default function Canvas({ action }: CanvasProps) {
         draw(nodes);
 
         const color = useCanvasStore.getState().color;
-        drawPreview(ctx, startX, startY, x, y, selectedTool || '', color);
+        drawPreview(
+          ctx,
+          startX,
+          startY,
+          canvasCoords.x,
+          canvasCoords.y,
+          selectedTool || "",
+          color,
+        );
       }
     },
-    [startX, startY, getContext, clearCanvas, draw, selectedTool, getMousePosition, nodes]
+    [
+      startX,
+      startY,
+      getContext,
+      clearCanvas,
+      draw,
+      selectedTool,
+      getMousePosition,
+      nodes,
+      screenToCanvas,
+      pan,
+      isPanning,
+      isDrawing,
+      draggedNode,
+      dragOffset,
+      updateNode,
+      currentPath,
+      isFreehandDrawing,
+      zoomPan.offsetX,
+      zoomPan.offsetY,
+      zoomPan.scale,
+    ],
+  );
+
+  const handleWheel = useCallback(
+    (e: React.WheelEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.max(
+        0.1,
+        Math.min(5.0, zoomPan.scale * scaleFactor),
+      );
+
+      // Calculate zoom center point (top center of canvas)
+      const canvasRect = canvas.getBoundingClientRect();
+      const centerX = canvasRect.width / 2;
+      const centerY = 0; // Top of canvas
+
+      // Calculate new offset to zoom towards top center
+      const scaleRatio = newScale / zoomPan.scale;
+      const newOffsetX = centerX - (centerX - zoomPan.offsetX) * scaleRatio;
+      const newOffsetY = centerY - (centerY - zoomPan.offsetY) * scaleRatio;
+
+      // Update both zoom and pan offset
+      setZoomWithOffset(newScale, newOffsetX, newOffsetY);
+    },
+    [zoomPan.scale, zoomPan.offsetX, zoomPan.offsetY, setZoomWithOffset],
   );
 
   useEffect(() => {
@@ -101,15 +365,34 @@ export default function Canvas({ action }: CanvasProps) {
     setCanvasSize();
     clearCanvas();
     draw(nodes);
-  }, [setCanvasSize, clearCanvas, draw, nodes]);
+  }, [setCanvasSize, clearCanvas, draw, nodes, zoomPan]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full bg-gray-100"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className={`absolute inset-0 w-full h-full bg-gray-100 ${
+          isPanning
+            ? "cursor-grabbing"
+            : draggedNode
+              ? "cursor-move"
+              : isDrawing
+                ? "crosshair"
+                : selectedTool === "Select"
+                  ? "cursor-grab"
+                  : "cursor-crosshair"
+        }`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onWheel={handleWheel}
+      />
+      <ZoomControls
+        zoomPercentage={getZoomPercentage()}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onResetZoom={resetZoom}
+      />
+    </>
   );
 }

@@ -28,10 +28,7 @@ export interface Square {
 }
 
 export interface Draw {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
+  points: { x: number; y: number }[];
   strokeColor: string;
   strokeWidth: number;
   strokeStyle: 'solid' | 'dashed';

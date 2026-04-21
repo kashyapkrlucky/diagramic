@@ -1,4 +1,4 @@
-import { ToolType, type CanvasNode } from "../types";
+import { ToolType, type CanvasNode, type Draw } from "../types";
 
 const DEFAULT_STROKE_WIDTH = 2;
 const DEFAULT_FILL_COLOR = "#ffffff";
@@ -103,6 +103,32 @@ function drawAnnotation({ ctx, node }: DrawingContext): void {
   ctx.fillText("📝", x, y);
 }
 
+function drawPath({ ctx, node }: DrawingContext): void {
+  if (!node.data || !('points' in node.data)) return;
+  
+  const drawData = node.data as unknown as Draw;
+  if (drawData.points.length < 2) return;
+
+  ctx.strokeStyle = drawData.strokeColor || node.color;
+  ctx.lineWidth = drawData.strokeWidth || 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (drawData.strokeStyle === 'dashed') {
+    ctx.setLineDash([5, 5]);
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(drawData.points[0].x, drawData.points[0].y);
+  
+  for (let i = 1; i < drawData.points.length; i++) {
+    ctx.lineTo(drawData.points[i].x, drawData.points[i].y);
+  }
+  
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function drawArrow({ ctx, node }: DrawingContext): void {
   const { x, y, x1, y1 } = node;
 
@@ -149,7 +175,7 @@ const DRAW_HANDLERS: Record<
   [ToolType.Text]: drawText,
   [ToolType.Annotation]: drawAnnotation,
   [ToolType.Select]: undefined,
-  [ToolType.Draw]: undefined,
+  [ToolType.Draw]: drawPath,
   [ToolType.Arrow]: drawArrow,
   [ToolType.ArrowDashed]: drawArrow,
 };

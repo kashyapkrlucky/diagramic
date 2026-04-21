@@ -18,6 +18,7 @@ interface CanvasStore {
   addNode: (node: CanvasNode) => void;
   selectedNode: CanvasNode | null;
   setSelectedNode: (node: CanvasNode) => void;
+  updateNode: (nodeId: string, updates: Partial<CanvasNode>) => void;
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: () => void;
@@ -45,6 +46,18 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setSelectedNode: (node: CanvasNode) => {
     set({ selectedNode: node });
   },
+  updateNode: (nodeId: string, updates: Partial<CanvasNode>) =>
+    set((state) => ({
+      nodes: state.nodes.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            ...updates,
+          };
+        }
+        return node;
+      }),
+    })),
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) =>
     set((state) => ({
       nodes: state.nodes.map((node) => {
