@@ -1,15 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Editor from "./pages/Editor";
-import SignIn from "./pages/SignIn";
+import React from "react";
+
+const EditorRoute = React.lazy(() => import("./pages/Editor"));
+const SignInRoute = React.lazy(() => import("./pages/SignIn"));
+const HomeRoute = React.lazy(() => import("./pages/Home"));
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/editor/:id" element={<Editor />} />
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/sign-in" element={<SignInRoute />} />
+        <Route path="/editor/:id" element={<EditorRoute />} />
       </Routes>
     </Router>
   );

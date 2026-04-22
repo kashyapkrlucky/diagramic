@@ -40,7 +40,6 @@ export default function Canvas({ action }: CanvasProps) {
     selectedTool,
     selectedSubTool,
     addNode,
-    setNodes,
     nodes,
     removeNodes,
     setSelectedNode,
@@ -60,24 +59,7 @@ export default function Canvas({ action }: CanvasProps) {
 
   const params = useParams();
 
-
-  const { drawing, fetchDrawingById } = useDrawingStore();
-
   const { updateDrawing } = useDrawingStore();
-
-  useEffect(() => {
-    if (params.id) {
-      fetchDrawingById(params.id);
-    }
-  }, [params.id, fetchDrawingById]);
-
-  useEffect(() => {
-    if (drawing && drawing.data) {
-      setNodes(JSON.parse(drawing.data));
-    } else {
-      setNodes([]);
-    }
-  }, [drawing, setNodes]);
 
   const {
     zoomPan,
