@@ -395,26 +395,22 @@ export default function Canvas({ action }: CanvasProps) {
     draw(nodes);
   }, [setCanvasSize, clearCanvas, draw, nodes, zoomPan]);
 
-  // if (loading) {
-  //   return <Loader/>
-  // }
+  const cursorClass = isPanning
+    ? "cursor-grabbing"
+    : draggedNode
+      ? "cursor-move"
+      : isDrawing
+        ? "crosshair"
+        : selectedTool === "Select"
+          ? "cursor-grab"
+          : isShapeTool(selectedTool) || isTextTool(selectedTool)
+            ? "cursor-crosshair"
+            : "cursor-default";
   return (
     <>
       <canvas
         ref={canvasRef}
-        className={`absolute inset-0 w-full h-full bg-gray-100 ${
-          isPanning
-            ? "cursor-grabbing"
-            : draggedNode
-              ? "cursor-move"
-              : isDrawing
-                ? "crosshair"
-                : selectedTool === "Select"
-                  ? "cursor-grab"
-                  : isShapeTool(selectedTool) || isTextTool(selectedTool)
-                    ? "cursor-crosshair"
-                    : "cursor-default"
-        }`}
+        className={`absolute inset-0 w-full h-full bg-gray-100 ${cursorClass}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
