@@ -34,7 +34,7 @@ export const useMousePosition = (
 export const useNodeAtPosition = (nodes: CanvasNode[]) => {
   const getNodeAtPosition = useCallback(
     (x: number, y: number): CanvasNode | null => {
-      const node = Object.values(nodes).find((node) =>
+      const node = nodes.find((node) =>
         isPointInRect(
           x,
           y,

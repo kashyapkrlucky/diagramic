@@ -10,8 +10,8 @@ import {
   TextCursorIcon,
   // StickyNoteIcon,
 } from "lucide-react";
-import { ToolType } from "../types";
-import type { Tool } from "../types";
+import { ToolType } from "../../types";
+import type { Tool } from "../../types";
 
 export const tools: Tool[] = [
   { 

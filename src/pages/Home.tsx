@@ -2,19 +2,28 @@ import { ClockIcon, FolderIcon, StarIcon, PlusIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { Drawing } from "../types";
-import Layout from "../components/Layout";
-import Modal from "../components/Modal";
-import CreateDrawingForm from "../components/CreateDrawingForm";
+import Layout from "../components/common/Layout";
+import Modal from "../components/common/Modal";
+import CreateDrawingForm from "../components/editor/CreateDrawingForm";
 import { useDrawingStore } from "../store/drawingStore";
-import Loader from "../components/Loader";
+import Loader from "../components/common/Loader";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { loading, error, drawings, fetchDrawings } = useDrawingStore();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
     fetchDrawings();
   }, [fetchDrawings]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/sign-in');
+    }
+  }, [isAuthenticated, navigate]);
 
   if (loading) {
     return <Loader/>;
@@ -22,6 +31,11 @@ export default function Home() {
 
   if (error) {
     return <div>Error: {error}</div>;
+  }
+
+  if (!isAuthenticated) {
+    navigate('/sign-in');
+    return null;
   }
 
   const redirectTo = async (id: string) => {

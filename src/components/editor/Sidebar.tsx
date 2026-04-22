@@ -1,7 +1,7 @@
 import { XIcon, Trash2Icon, ChevronRightIcon } from "lucide-react";
-import { useCanvasStore } from "../store/canvasStore";
+import { useCanvasStore } from "../../store/canvasStore";
 import { useState } from "react";
-import type { CanvasNode } from "../types";
+import type { CanvasNode } from "../../types";
 
 interface SidebarProps {
   isOpen: boolean;

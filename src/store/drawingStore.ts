@@ -4,6 +4,7 @@ import axiosInstance from "../lib/axios";
 
 interface DrawingStore {
   loading: boolean;
+  isUpdating: boolean;
   error: string | null;
   drawings: Drawing[];
   drawing: Drawing | null;
@@ -17,6 +18,7 @@ interface DrawingStore {
 export const useDrawingStore = create<DrawingStore>((set) => {
   return {
     loading: false,
+    isUpdating: false,
     error: null,
     drawings: [],
     drawing: null,
@@ -61,14 +63,14 @@ export const useDrawingStore = create<DrawingStore>((set) => {
     },
     updateDrawing: async (id: string, drawing: Partial<Drawing>) => {
       try {
-        set({ loading: true, error: null });
+        set({ isUpdating: true, error: null });
         const { data } = await axiosInstance.patch(`/drawings/${id}`, drawing);
         return data;
       } catch (error) {
         console.error("Error updating drawing:", error);
         set({ error: "Failed to update drawing" });
       } finally {
-        set({ loading: false });
+        set({ isUpdating: false });
       }
     },
     deleteDrawing: async (id: string) => {

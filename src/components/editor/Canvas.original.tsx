@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCanvasStore } from "../store/canvasStore";
-import { ToolType, type CanvasNode } from "../types";
-import { drawShape } from "../utils/canvas";
-import { useMousePosition, useNodeAtPosition } from "../hooks/usePosition";
+import { useCanvasStore } from "../../store/canvasStore";
+import { ToolType, type CanvasNode } from "../../types";
+import { drawShape } from "../../utils/canvas";
+import { useMousePosition, useNodeAtPosition } from "../../hooks/usePosition";
 
 interface CanvasProps {
   action: string;

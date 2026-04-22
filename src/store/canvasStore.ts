@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Tool, CanvasNode, NodeDataType, ToolType } from "../types";
-import { tools } from "../components/ToolListing";
+import { tools } from "../components/editor/ToolListing";
 
 interface CanvasStore {
   tools: Tool[];

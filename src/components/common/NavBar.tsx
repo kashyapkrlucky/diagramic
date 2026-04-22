@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useDrawingStore } from "../store/drawingStore";
-import { useAuth } from "../hooks/useAuth";
+import { useDrawingStore } from "../../store/drawingStore";
+import { useAuth } from "../../hooks/useAuth";
 
 interface NavBarProps {
   type: "home" | "editor";
@@ -29,7 +29,7 @@ export default function NavBar({
 }: NavBarProps) {
   const [isLogoutDropdownOpen, setIsLogoutDropdownOpen] = useState(false);
 
-  const { loading: onSaving } = useDrawingStore();
+  const { isUpdating } = useDrawingStore();
 
   const { signOut } = useAuth();
   // Editor navbar
@@ -71,7 +71,7 @@ export default function NavBar({
                   onClick={() => onCanvasAction?.(action.name)}
                   title={action.label}
                 >
-                  {onSaving && action.name === "save" ? (
+                  {isUpdating && action.name === "save" ? (
                     <span className="text-gray-600 group-hover:text-gray-800 transition-colors">
                       <Loader2Icon className="w-4 h-4 animate-spin" />
                     </span>

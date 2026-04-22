@@ -1,5 +1,5 @@
-import { useCanvasStore } from "../store/canvasStore";
-import type { Tool, ToolType } from "../types";
+import { useCanvasStore } from "../../store/canvasStore";
+import type { Tool, ToolType } from "../../types";
 import ColorPicker from "./ColorPicker";
 import { useEffect, useRef, useState } from "react";
 

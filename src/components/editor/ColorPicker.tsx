@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useCanvasStore } from "../store/canvasStore";
+import { useCanvasStore } from "../../store/canvasStore";
 
 const colors = [
   "#786fa6", // Lavender

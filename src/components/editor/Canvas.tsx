@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCanvasStore } from "../store/canvasStore";
-import { type CanvasNode } from "../types";
-import { useMousePosition, useNodeAtPosition } from "../hooks/usePosition";
-import { useCanvas } from "../hooks/useCanvas";
-import { useZoomPan } from "../hooks/useZoomPan";
+import { useCanvasStore } from "../../store/canvasStore";
+import { type CanvasNode } from "../../types";
+import { useMousePosition, useNodeAtPosition } from "../../hooks/usePosition";
+import { useCanvas } from "../../hooks/useCanvas";
+import { useZoomPan } from "../../hooks/useZoomPan";
 import {
   isShapeTool,
   isTextTool,
   createTextNode,
   createShapeNode,
-} from "../utils/toolHandlers";
-import { drawPreview } from "../utils/previewDrawing";
+} from "../../utils/toolHandlers";
+import { drawPreview } from "../../utils/previewDrawing";
 import ZoomControls from "./ZoomControls";
 import { useParams } from "react-router-dom";
-import { useDrawingStore } from "../store/drawingStore";
+import { useDrawingStore } from "../../store/drawingStore";
 // import Loader from "./Loader";
 
 // Utility function to get pen size from selected subtool
@@ -139,6 +139,12 @@ export default function Canvas({ action }: CanvasProps) {
       }
 
       if (existingNode) {
+        // Start dragging any existing node (text, shape, or draw)
+        setDraggedNode(existingNode.id);
+        setDragOffset({
+          x: canvasCoords.x - existingNode.x,
+          y: canvasCoords.y - existingNode.y,
+        });
         setSelectedNode(existingNode);
         return;
       }
@@ -423,7 +429,9 @@ export default function Canvas({ action }: CanvasProps) {
                 ? "crosshair"
                 : selectedTool === "Select"
                   ? "cursor-grab"
-                  : "cursor-crosshair"
+                  : isShapeTool(selectedTool) || isTextTool(selectedTool)
+                    ? "cursor-crosshair"
+                    : "cursor-default"
         }`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

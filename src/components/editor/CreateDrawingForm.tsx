@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDrawingStore } from "../store/drawingStore";
+import { useDrawingStore } from "../../store/drawingStore";
 
 interface CreateDrawingFormProps {
   onSuccess: (data: string) => void;
