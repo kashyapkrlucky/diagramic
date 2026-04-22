@@ -6,7 +6,6 @@ import {
   BrushCleaningIcon,
   SaveIcon,
   UserCircle2Icon,
-  DownloadIcon,
   Loader2Icon,
 } from "lucide-react";
 import { useState } from "react";
@@ -40,11 +39,6 @@ export default function NavBar({
       icon: <BrushCleaningIcon className="w-4 h-4" />,
       name: "clear",
       label: "Clear Canvas",
-    },
-    {
-      icon: <DownloadIcon className="w-4 h-4" />,
-      name: "download",
-      label: "Download as JPG",
     },
     { icon: <SaveIcon className="w-4 h-4" />, name: "save", label: "Save" },
   ];

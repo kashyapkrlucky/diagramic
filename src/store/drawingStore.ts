@@ -15,7 +15,7 @@ interface DrawingStore {
   deleteDrawing: (id: string) => Promise<void>;
 }
 
-export const useDrawingStore = create<DrawingStore>((set) => {
+export const useDrawingStore = create<DrawingStore>((set, get) => {
   return {
     loading: false,
     isUpdating: false,
@@ -77,6 +77,7 @@ export const useDrawingStore = create<DrawingStore>((set) => {
       try {
         set({ loading: true, error: null });
         await axiosInstance.delete(`/drawings/${id}`);
+        set({ drawings: get().drawings.filter((drawing) => drawing._id !== id) });
       } catch (error) {
         console.error("Error deleting drawing:", error);
         set({ error: "Failed to delete drawing" });
