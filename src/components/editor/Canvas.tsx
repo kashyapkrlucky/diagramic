@@ -12,6 +12,7 @@ import {
 } from "../../utils/toolHandlers";
 import { drawPreview } from "../../utils/previewDrawing";
 import ZoomControls from "./ZoomControls";
+import TextEditor from "./TextEditor";
 import { useParams } from "react-router-dom";
 import { useDrawingStore } from "../../store/drawingStore";
 // import Loader from "./Loader";
@@ -44,6 +45,9 @@ export default function Canvas({ action }: CanvasProps) {
     removeNodes,
     setSelectedNode,
     updateNode,
+    editingNodeId,
+    setEditingNodeId,
+    setEditText,
   } = useCanvasStore();
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
@@ -55,7 +59,9 @@ export default function Canvas({ action }: CanvasProps) {
     [],
   );
   const [isFreehandDrawing, setIsFreehandDrawing] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const nodesRef = useRef(nodes);
+  const clickTimeoutRef = useRef<number | null>(null);
 
   const params = useParams();
 
@@ -96,7 +102,16 @@ export default function Canvas({ action }: CanvasProps) {
 
       const existingNode = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
 
+      if (selectedTool === "Hand") {
+        // Hand tool always pans the canvas
+        setIsPanning(true);
+        startPan(x, y);
+        return;
+      }
+
       if (selectedTool === "Select") {
+        console.log(existingNode);
+        
         if (existingNode) {
           // Start dragging the node
           setDraggedNode(existingNode.id);
@@ -106,9 +121,8 @@ export default function Canvas({ action }: CanvasProps) {
           });
           setSelectedNode(existingNode);
         } else {
-          // Start panning on empty canvas with select tool
-          setIsPanning(true);
-          startPan(x, y);
+          // Select tool does NOT pan on empty canvas - only works on nodes
+          return;
         }
         return;
       }
@@ -120,24 +134,25 @@ export default function Canvas({ action }: CanvasProps) {
         return;
       }
 
-      if (existingNode) {
-        // Start dragging any existing node (text, shape, or draw)
-        setDraggedNode(existingNode.id);
-        setDragOffset({
-          x: canvasCoords.x - existingNode.x,
-          y: canvasCoords.y - existingNode.y,
-        });
-        setSelectedNode(existingNode);
-        return;
-      }
-
       if (isTextTool(selectedTool)) {
-        const node = createTextNode(
-          canvasCoords.x,
-          canvasCoords.y,
-          selectedTool,
-        );
-        addNode(node);
+        // Clear any existing timeout
+        if (clickTimeoutRef.current) {
+          clearTimeout(clickTimeoutRef.current);
+        }
+        
+        // Use a timeout to delay text node creation
+        clickTimeoutRef.current = window.setTimeout(() => {
+          const node = createTextNode(
+            canvasCoords.x,
+            canvasCoords.y,
+            selectedTool,
+          );
+          addNode(node);
+          // Start editing the new text node immediately
+          setEditingNodeId(node.id);
+          setEditText("");
+          clickTimeoutRef.current = null;
+        }, 200); // 200ms delay to detect double-click
       } else if (selectedTool === "Draw") {
         // Start freehand drawing
         setIsFreehandDrawing(true);
@@ -146,6 +161,15 @@ export default function Canvas({ action }: CanvasProps) {
         setIsDrawing(true);
         setStartX(canvasCoords.x);
         setStartY(canvasCoords.y);
+      } else if (existingNode) {
+        // Start dragging any existing node (text, shape, or draw) when no drawing tool is selected
+        setDraggedNode(existingNode.id);
+        setDragOffset({
+          x: canvasCoords.x - existingNode.x,
+          y: canvasCoords.y - existingNode.y,
+        });
+        setSelectedNode(existingNode);
+        return;
       }
     },
     [
@@ -158,6 +182,8 @@ export default function Canvas({ action }: CanvasProps) {
       setSelectedNode,
       screenToCanvas,
       startPan,
+      setEditingNodeId,
+      setEditText,
     ],
   );
 
@@ -247,6 +273,15 @@ export default function Canvas({ action }: CanvasProps) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const { x, y } = getMousePosition(e);
+      const canvasCoords = screenToCanvas(x, y);
+
+      // Check for hover over nodes (only when using Select tool)
+      if (selectedTool === "Select") {
+        const hoveredNodeFound = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
+        setHoveredNode(hoveredNodeFound?.id || null);
+      } else {
+        setHoveredNode(null);
+      }
 
       if (isPanning) {
         pan(x, y);
@@ -353,6 +388,8 @@ export default function Canvas({ action }: CanvasProps) {
       zoomPan.offsetX,
       zoomPan.offsetY,
       zoomPan.scale,
+      getNodeAtPosition,
+      setHoveredNode,
     ],
   );
 
@@ -395,17 +432,55 @@ export default function Canvas({ action }: CanvasProps) {
     draw(nodes);
   }, [setCanvasSize, clearCanvas, draw, nodes, zoomPan]);
 
+  // Text editing handlers
+  const handleTextSave = useCallback((text: string) => {
+    if (editingNodeId) {
+      const node = nodes.find(n => n.id === editingNodeId);
+      if (node && isTextTool(node.type)) {
+        // Recalculate dimensions based on new text
+        const fontSize = node.type === "Annotation" ? 20 : 16;
+        const textLength = text.length || 1;
+        const estimatedWidth = textLength * fontSize * 0.6;
+        const estimatedHeight = fontSize;
+        
+        updateNode(editingNodeId, { 
+          text,
+          width: estimatedWidth,
+          height: estimatedHeight,
+        });
+      }
+      setEditingNodeId(null);
+      setEditText("");
+    }
+  }, [editingNodeId, updateNode, setEditingNodeId, setEditText, nodes]);
+
+  const handleTextCancel = useCallback(() => {
+    setEditingNodeId(null);
+    setEditText("");
+  }, [setEditingNodeId, setEditText]);
+
+  const handleTextDoubleClick = useCallback((node: CanvasNode) => {
+    if (isTextTool(node.type)) {
+      setEditingNodeId(node.id);
+      setEditText(node.text || "");
+    }
+  }, [setEditingNodeId, setEditText]);
+
   const cursorClass = isPanning
     ? "cursor-grabbing"
     : draggedNode
       ? "cursor-move"
-      : isDrawing
-        ? "crosshair"
-        : selectedTool === "Select"
-          ? "cursor-grab"
-          : isShapeTool(selectedTool) || isTextTool(selectedTool)
-            ? "cursor-crosshair"
-            : "cursor-default";
+      : hoveredNode && selectedTool === "Select"
+        ? "cursor-move"
+        : isDrawing
+          ? "crosshair"
+          : selectedTool === "Hand"
+            ? "cursor-grab"
+            : selectedTool === "Select"
+              ? "cursor-default"
+              : isShapeTool(selectedTool) || isTextTool(selectedTool)
+                ? "cursor-crosshair"
+                : "cursor-default";
   return (
     <>
       <canvas
@@ -414,6 +489,22 @@ export default function Canvas({ action }: CanvasProps) {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onDoubleClick={(e) => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const { x, y } = getMousePosition(e);
+          const canvasCoords = screenToCanvas(x, y);
+          const existingNode = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
+          if (existingNode && isTextTool(existingNode.type)) {
+            // Clear the timeout to prevent new text node creation
+            if (clickTimeoutRef.current) {
+              clearTimeout(clickTimeoutRef.current);
+              clickTimeoutRef.current = null;
+            }
+            handleTextDoubleClick(existingNode);
+            e.preventDefault();
+          }
+        }}
       />
       <ZoomControls
         zoomPercentage={getZoomPercentage()}
@@ -421,6 +512,16 @@ export default function Canvas({ action }: CanvasProps) {
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
       />
+      {editingNodeId && (() => {
+        const editingNode = nodes.find(n => n.id === editingNodeId);
+        return editingNode ? (
+          <TextEditor
+            node={editingNode}
+            onSave={handleTextSave}
+            onCancel={handleTextCancel}
+          />
+        ) : null;
+      })()}
     </>
   );
 }

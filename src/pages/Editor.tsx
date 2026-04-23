@@ -55,14 +55,13 @@ export default function Editor() {
     <Layout
       navbarType="editor"
       navbarProps={{
-        onCanvasAction,
         isSidebarOpen,
         onToggleSidebar: () => setIsSidebarOpen(!isSidebarOpen),
       }}
     >
       <Canvas action={canvasAction} />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <ToolBar />
+      <ToolBar onCanvasAction={onCanvasAction}/>
     </Layout>
   );
 }

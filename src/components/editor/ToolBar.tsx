@@ -1,9 +1,21 @@
+import {
+  BrushCleaningIcon,
+  Loader2Icon,
+  RedoIcon,
+  SaveIcon,
+  UndoIcon,
+} from "lucide-react";
 import { useCanvasStore } from "../../store/canvasStore";
 import type { Tool, ToolType } from "../../types";
 import ColorPicker from "./ColorPicker";
 import { useEffect, useRef, useState } from "react";
+import { useDrawingStore } from "../../store/drawingStore";
 
-export default function ToolBar() {
+interface ToolBarProps {
+  onCanvasAction?: (action: string) => void;
+}
+
+export default function ToolBar({ onCanvasAction }: ToolBarProps) {
   const toolBarRef = useRef<HTMLDivElement>(null);
   const [showSubTools, setShowSubTools] = useState(false);
   const {
@@ -14,6 +26,7 @@ export default function ToolBar() {
     selectedSubTool,
     setSelectedSubTool,
   } = useCanvasStore();
+  const { isUpdating } = useDrawingStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,6 +73,18 @@ export default function ToolBar() {
         return "h-1";
     }
   };
+
+  // Editor navbar
+  const actions = [
+    { icon: <UndoIcon className="w-4 h-4" />, name: "undo", label: "Undo" },
+    { icon: <RedoIcon className="w-4 h-4" />, name: "redo", label: "Redo" },
+    {
+      icon: <BrushCleaningIcon className="w-4 h-4" />,
+      name: "clear",
+      label: "Clear Canvas",
+    },
+    { icon: <SaveIcon className="w-4 h-4" />, name: "save", label: "Save" },
+  ];
 
   const selectedToolIndex = getSelectedToolIndex();
 
@@ -132,6 +157,28 @@ export default function ToolBar() {
 
       <div className="flex items-center gap-2 px-1">
         <ColorPicker />
+
+        {actions.map((action) => (
+          <button
+            key={action.name}
+            className="p-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 group relative"
+            onClick={() => onCanvasAction?.(action.name)}
+            title={action.label}
+          >
+            {isUpdating && action.name === "save" ? (
+              <span className="text-gray-600 group-hover:text-gray-800 transition-colors">
+                <Loader2Icon className="w-4 h-4 animate-spin" />
+              </span>
+            ) : (
+              <span className="text-gray-600 group-hover:text-gray-800 transition-colors">
+                {action.icon}
+              </span>
+            )}
+            <span className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-1 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              {action.label}
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );

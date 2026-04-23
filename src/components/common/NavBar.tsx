@@ -1,47 +1,25 @@
 import {
   PanelRightCloseIcon,
   PanelRightIcon,
-  UndoIcon,
-  RedoIcon,
-  BrushCleaningIcon,
-  SaveIcon,
   UserCircle2Icon,
-  Loader2Icon,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useDrawingStore } from "../../store/drawingStore";
 import { useAuth } from "../../hooks/useAuth";
 
 interface NavBarProps {
   type: "home" | "editor";
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
-  onCanvasAction?: (action: string) => void;
 }
 
 export default function NavBar({
   type,
   isSidebarOpen,
   onToggleSidebar,
-  onCanvasAction,
 }: NavBarProps) {
   const [isLogoutDropdownOpen, setIsLogoutDropdownOpen] = useState(false);
-
-  const { isUpdating } = useDrawingStore();
-
   const { signOut } = useAuth();
-  // Editor navbar
-  const actions = [
-    { icon: <UndoIcon className="w-4 h-4" />, name: "undo", label: "Undo" },
-    { icon: <RedoIcon className="w-4 h-4" />, name: "redo", label: "Redo" },
-    {
-      icon: <BrushCleaningIcon className="w-4 h-4" />,
-      name: "clear",
-      label: "Clear Canvas",
-    },
-    { icon: <SaveIcon className="w-4 h-4" />, name: "save", label: "Save" },
-  ];
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
@@ -57,30 +35,6 @@ export default function NavBar({
       <div className="flex items-center gap-1">
         {type === "editor" && (
           <>
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              {actions.map((action) => (
-                <button
-                  key={action.name}
-                  className="p-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 group relative"
-                  onClick={() => onCanvasAction?.(action.name)}
-                  title={action.label}
-                >
-                  {isUpdating && action.name === "save" ? (
-                    <span className="text-gray-600 group-hover:text-gray-800 transition-colors">
-                      <Loader2Icon className="w-4 h-4 animate-spin" />
-                    </span>
-                  ) : (
-                    <span className="text-gray-600 group-hover:text-gray-800 transition-colors">
-                      {action.icon}
-                    </span>
-                  )}
-                  <span className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-1 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    {action.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-
             <div className="w-px h-6 bg-gray-300 mx-2" />
 
             <button

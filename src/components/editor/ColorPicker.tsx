@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useCanvasStore } from "../../store/canvasStore";
 
 const colors = [
-  "#786fa6", // Lavender
   "#ff6b6b", // Red
+  "#786fa6", // Lavender
   "#ee5a6f", // Pink
   "#ff9ff3", // Light Pink
   "#c44569", // Dark Pink

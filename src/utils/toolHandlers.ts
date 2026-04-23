@@ -16,6 +16,12 @@ export const isTextTool = (toolName: string): boolean => {
 
 export const createTextNode = (x: number, y: number, toolName: string): CanvasNode => {
   const color = useCanvasStore.getState().color;
+  // Estimate text dimensions based on font size and text length
+  const fontSize = toolName === "Annotation" ? 20 : 16;
+  const textLength = 4; // Default "Text" length
+  const estimatedWidth = textLength * fontSize * 0.6; // Approximate character width
+  const estimatedHeight = fontSize;
+  
   return {
     id: Date.now().toString(),
     type: toolName as ToolType,
@@ -23,6 +29,8 @@ export const createTextNode = (x: number, y: number, toolName: string): CanvasNo
     x: x,
     y: y,
     text: "Text",
+    width: estimatedWidth,
+    height: estimatedHeight,
   };
 };
 

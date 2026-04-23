@@ -9,6 +9,7 @@ export interface Drawing {
 
 export const ToolType = {
   Select: "Select",
+  Hand: "Hand",
   Draw: "Draw",
   Square: "Square",
   SquareDashed: "SquareDashed",

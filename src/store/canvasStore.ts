@@ -24,6 +24,12 @@ interface CanvasStore {
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: () => void;
+
+  // Text editing state
+  editingNodeId: string | null;
+  setEditingNodeId: (nodeId: string | null) => void;
+  editText: string;
+  setEditText: (text: string) => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set) => ({
@@ -42,7 +48,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setSelectedSubTool: (tool: string) => set({ selectedSubTool: tool, showSubTools: false }),
   showSubTools: false,
   setShowSubTools: (show: boolean) => set({ showSubTools: show }),
-  color: "#000000",
+  color: "#ff6b6b",
   setColor: (color: string) => set({ color }),
 
   nodes: [],
@@ -82,4 +88,10 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
       nodes: state.nodes.filter((node) => node.id !== nodeId),
     })),
   removeNodes: () => set({ nodes: [] }),
+
+  // Text editing state
+  editingNodeId: null,
+  setEditingNodeId: (nodeId: string | null) => set({ editingNodeId: nodeId }),
+  editText: "",
+  setEditText: (text: string) => set({ editText: text }),
 }));

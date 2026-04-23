@@ -167,6 +167,7 @@ const DRAW_HANDLERS: Record<
   ToolType,
   ((context: DrawingContext) => void) | undefined
 > = {
+  [ToolType.Hand]: undefined,
   [ToolType.Circle]: drawCircle,
   [ToolType.Ellipse]: drawEllipse,
   [ToolType.Diamond]: drawDiamond,

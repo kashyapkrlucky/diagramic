@@ -34,16 +34,36 @@ export const useMousePosition = (
 export const useNodeAtPosition = (nodes: CanvasNode[]) => {
   const getNodeAtPosition = useCallback(
     (x: number, y: number): CanvasNode | null => {
-      const node = nodes.find((node) =>
-        isPointInRect(
+      const node = nodes.find((node) => {
+        // Calculate bounds differently for shapes vs text nodes
+        let x1, y1, x2, y2;
+        
+        if (node.x1 !== undefined && node.y1 !== undefined) {
+          // Shape nodes: x1 and y1 are end coordinates
+          x1 = Math.min(node.x, node.x1);
+          y1 = Math.min(node.y, node.y1);
+          x2 = Math.max(node.x, node.x1);
+          y2 = Math.max(node.y, node.y1);
+        } else {
+          // Text nodes: use width and height from start position
+          x1 = node.x;
+          y1 = node.y;
+          x2 = node.x + (node.width || 40);
+          y2 = node.y + (node.height || 20);
+        }
+        
+        return isPointInRect(
           x,
           y,
-          node.x,
-          node.y,
-          (node.x1 || node.x) + (node.width || 0),
-          (node.y1 || node.y) + (node.height || 0),
-        ),
+          x1,
+          y1,
+          x2,
+          y2,
+        )},
       );
+
+      console.log(node);
+      
       return node || null;
     },
     [nodes],
@@ -64,6 +84,7 @@ export const isPointInRect = (
   rectX2: number,
   rectY2: number,
 ): boolean => {
+
   return (
     pointX >= rectX1 &&
     pointX <= rectX2 &&

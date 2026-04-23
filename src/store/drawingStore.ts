@@ -52,7 +52,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     createDrawing: async (drawing: Partial<Drawing>) => {
       try {
         set({ loading: true, error: null });
-        const { data } = await axiosInstance.post("/drawings", drawing);
+        const { data: {data} } = await axiosInstance.post("/drawings", drawing);
         return data;
       } catch (error) {
         console.error("Error creating drawing:", error);

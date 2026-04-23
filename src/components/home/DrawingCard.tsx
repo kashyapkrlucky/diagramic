@@ -42,9 +42,11 @@ export default function DrawingCard({ drawing }: DrawingCardProps) {
     console.log("Download drawing:", drawing._id);
 
     const link = document.createElement("a");
-    link.download = "lets-draw.png";
-    link.href = drawing.image;
-    link.click();
+    if (link) {
+      link.download = "lets-draw.png";
+      link.href = drawing.image || "";
+      link.click();
+    }
     setShowMenu(false);
   };
 

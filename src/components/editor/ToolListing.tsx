@@ -1,5 +1,6 @@
 import {
   MousePointer2Icon,
+  HandIcon,
   LineSquiggleIcon,
   CircleIcon,
   SquareIcon,
@@ -17,6 +18,11 @@ export const tools: Tool[] = [
   { 
     name: ToolType.Select,
     icon: <MousePointer2Icon className="w-4 h-4" />,
+    subTools: [],
+  },
+  { 
+    name: ToolType.Hand,
+    icon: <HandIcon className="w-4 h-4" />,
     subTools: [],
   },
   {
