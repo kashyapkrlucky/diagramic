@@ -21,6 +21,10 @@ export default function Editor() {
     setCanvasAction(action);
   };
 
+  const onActionHandled = () => {
+    setCanvasAction("");
+  };
+
   const params = useParams();
 
   useEffect(() => {
@@ -59,7 +63,7 @@ export default function Editor() {
         onToggleSidebar: () => setIsSidebarOpen(!isSidebarOpen),
       }}
     >
-      <Canvas action={canvasAction} />
+      <Canvas action={canvasAction} onActionHandled={onActionHandled} />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <ToolBar onCanvasAction={onCanvasAction}/>
     </Layout>

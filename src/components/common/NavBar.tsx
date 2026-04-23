@@ -1,11 +1,9 @@
 import {
   PanelRightCloseIcon,
   PanelRightIcon,
-  UserCircle2Icon,
 } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import UserMenu from "./UserMenu";
 
 interface NavBarProps {
   type: "home" | "editor";
@@ -18,8 +16,6 @@ export default function NavBar({
   isSidebarOpen,
   onToggleSidebar,
 }: NavBarProps) {
-  const [isLogoutDropdownOpen, setIsLogoutDropdownOpen] = useState(false);
-  const { signOut } = useAuth();
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
@@ -54,25 +50,7 @@ export default function NavBar({
           </>
         )}
 
-        <div className="p-2 rounded-lg hover:bg-gray-100  relative">
-          <UserCircle2Icon
-            className="w-4 h-4 text-gray-600"
-            onClick={() => setIsLogoutDropdownOpen(!isLogoutDropdownOpen)}
-          />
-          {isLogoutDropdownOpen && (
-            <div className="absolute top-8 z-10 right-0">
-              <button
-                onClick={() => {
-                  signOut();
-                  window.location.href = "/sign-in";
-                }}
-                className="bg-gray-800 text-white text-xs px-2 py-1 rounded transition-opacity whitespace-nowrap cursor-pointer"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+       <UserMenu />
       </div>
     </header>
   );

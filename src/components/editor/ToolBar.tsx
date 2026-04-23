@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDrawingStore } from "../../store/drawingStore";
 
 interface ToolBarProps {
-  onCanvasAction?: (action: string) => void;
+  onCanvasAction: (action: string) => void;
 }
 
 export default function ToolBar({ onCanvasAction }: ToolBarProps) {
@@ -162,7 +162,7 @@ export default function ToolBar({ onCanvasAction }: ToolBarProps) {
           <button
             key={action.name}
             className="p-2 rounded-md hover:bg-white hover:shadow-sm transition-all duration-200 group relative"
-            onClick={() => onCanvasAction?.(action.name)}
+            onClick={() => onCanvasAction(action.name)}
             title={action.label}
           >
             {isUpdating && action.name === "save" ? (

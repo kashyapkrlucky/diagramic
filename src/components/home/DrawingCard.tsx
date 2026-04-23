@@ -31,16 +31,11 @@ export default function DrawingCard({ drawing }: DrawingCardProps) {
   };
 
   const onDelete = async () => {
-    // TODO: Implement delete functionality
-    console.log("Delete drawing:", drawing._id);
     await deleteDrawing(drawing._id); 
     setShowDeleteConfirm(false);
   };
 
   const onDownload = () => {
-    // TODO: Implement download functionality
-    console.log("Download drawing:", drawing._id);
-
     const link = document.createElement("a");
     if (link) {
       link.download = "lets-draw.png";

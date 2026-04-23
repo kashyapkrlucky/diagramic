@@ -61,9 +61,6 @@ export const useNodeAtPosition = (nodes: CanvasNode[]) => {
           y2,
         )},
       );
-
-      console.log(node);
-      
       return node || null;
     },
     [nodes],

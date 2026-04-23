@@ -4,7 +4,7 @@ import { tools } from "../components/editor/ToolListing";
 
 interface CanvasStore {
   tools: Tool[];
-  subTools: {name: string}[];
+  subTools: { name: string }[];
   setSubTools: (subTools: Tool[]) => void;
   selectedTool: ToolType;
   setSelectedTool: (tool: ToolType) => void;
@@ -24,6 +24,10 @@ interface CanvasStore {
   updateNodeData: (nodeId: string, data: Partial<NodeDataType>) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: () => void;
+
+  tempNodes: CanvasNode[];
+  addTempNode: () => void;
+  removeTempNode: () => void;
 
   // Text editing state
   editingNodeId: string | null;
@@ -45,14 +49,17 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     });
   },
   selectedSubTool: null,
-  setSelectedSubTool: (tool: string) => set({ selectedSubTool: tool, showSubTools: false }),
+  setSelectedSubTool: (tool: string) =>
+    set({ selectedSubTool: tool, showSubTools: false }),
   showSubTools: false,
   setShowSubTools: (show: boolean) => set({ showSubTools: show }),
   color: "#ff6b6b",
   setColor: (color: string) => set({ color }),
 
   nodes: [],
-  setNodes: (nodes: CanvasNode[]) => { set({ nodes })},
+  setNodes: (nodes: CanvasNode[]) => {
+    set({ nodes });
+  },
   addNode: (node: CanvasNode) =>
     set((state) => ({ nodes: [...state.nodes, node] })),
   selectedNode: null,
@@ -88,6 +95,32 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
       nodes: state.nodes.filter((node) => node.id !== nodeId),
     })),
   removeNodes: () => set({ nodes: [] }),
+
+  tempNodes: [],
+  addTempNode: () =>
+    set((state) => {
+      if (state.nodes.length > 0) {
+        const lastNode = state.nodes[state.nodes.length - 1];
+        const newState = {
+          tempNodes: [...state.tempNodes, lastNode],
+          nodes: state.nodes.slice(0, -1),
+        };
+        return newState;
+      }
+      return state;
+    }),
+  removeTempNode: () =>
+    set((state) => {
+      if (state.tempNodes.length > 0) {
+        const lastTempNode = state.tempNodes[state.tempNodes.length - 1];
+        const newState = {
+          tempNodes: state.tempNodes.slice(0, -1),
+          nodes: [...state.nodes, lastTempNode],
+        };
+        return newState;
+      }
+      return state;
+    }),
 
   // Text editing state
   editingNodeId: null,

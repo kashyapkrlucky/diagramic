@@ -33,9 +33,10 @@ const getPenSize = (selectedSubTool: string | null): number => {
 
 interface CanvasProps {
   action: string;
+  onActionHandled?: () => void;
 }
 
-export default function Canvas({ action }: CanvasProps) {
+export default function Canvas({ action, onActionHandled }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const {
     selectedTool,
@@ -48,6 +49,8 @@ export default function Canvas({ action }: CanvasProps) {
     editingNodeId,
     setEditingNodeId,
     setEditText,
+    addTempNode,
+    removeTempNode,
   } = useCanvasStore();
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
@@ -110,8 +113,6 @@ export default function Canvas({ action }: CanvasProps) {
       }
 
       if (selectedTool === "Select") {
-        console.log(existingNode);
-        
         if (existingNode) {
           // Start dragging the node
           setDraggedNode(existingNode.id);
@@ -139,7 +140,7 @@ export default function Canvas({ action }: CanvasProps) {
         if (clickTimeoutRef.current) {
           clearTimeout(clickTimeoutRef.current);
         }
-        
+
         // Use a timeout to delay text node creation
         clickTimeoutRef.current = window.setTimeout(() => {
           const node = createTextNode(
@@ -277,7 +278,10 @@ export default function Canvas({ action }: CanvasProps) {
 
       // Check for hover over nodes (only when using Select tool)
       if (selectedTool === "Select") {
-        const hoveredNodeFound = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
+        const hoveredNodeFound = getNodeAtPosition(
+          canvasCoords.x,
+          canvasCoords.y,
+        );
         setHoveredNode(hoveredNodeFound?.id || null);
       } else {
         setHoveredNode(null);
@@ -397,10 +401,13 @@ export default function Canvas({ action }: CanvasProps) {
     if (action === "clear") {
       clearCanvas();
       removeNodes();
+      onActionHandled?.();
     } else if (action === "undo") {
-      // TODO: Implement undo
+      addTempNode();
+      onActionHandled?.();
     } else if (action === "redo") {
-      // TODO: Implement redo
+      removeTempNode();
+      onActionHandled?.();
     } else if (action === "download") {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -410,6 +417,7 @@ export default function Canvas({ action }: CanvasProps) {
         link.href = dataUrl;
         link.click();
       }
+      onActionHandled?.();
     } else if (action === "save") {
       const payload = {
         image: canvasRef.current?.toDataURL("image/png"),
@@ -419,8 +427,9 @@ export default function Canvas({ action }: CanvasProps) {
       if (params.id) {
         updateDrawing(params.id, payload);
       }
+      onActionHandled?.();
     }
-  }, [action, clearCanvas, removeNodes, params, updateDrawing]);
+  }, [action, clearCanvas, removeNodes, params, updateDrawing, onActionHandled, addTempNode, removeTempNode]);
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -433,38 +442,44 @@ export default function Canvas({ action }: CanvasProps) {
   }, [setCanvasSize, clearCanvas, draw, nodes, zoomPan]);
 
   // Text editing handlers
-  const handleTextSave = useCallback((text: string) => {
-    if (editingNodeId) {
-      const node = nodes.find(n => n.id === editingNodeId);
-      if (node && isTextTool(node.type)) {
-        // Recalculate dimensions based on new text
-        const fontSize = node.type === "Annotation" ? 20 : 16;
-        const textLength = text.length || 1;
-        const estimatedWidth = textLength * fontSize * 0.6;
-        const estimatedHeight = fontSize;
-        
-        updateNode(editingNodeId, { 
-          text,
-          width: estimatedWidth,
-          height: estimatedHeight,
-        });
+  const handleTextSave = useCallback(
+    (text: string) => {
+      if (editingNodeId) {
+        const node = nodes.find((n) => n.id === editingNodeId);
+        if (node && isTextTool(node.type)) {
+          // Recalculate dimensions based on new text
+          const fontSize = node.type === "Annotation" ? 20 : 16;
+          const textLength = text.length || 1;
+          const estimatedWidth = textLength * fontSize * 0.6;
+          const estimatedHeight = fontSize;
+
+          updateNode(editingNodeId, {
+            text,
+            width: estimatedWidth,
+            height: estimatedHeight,
+          });
+        }
+        setEditingNodeId(null);
+        setEditText("");
       }
-      setEditingNodeId(null);
-      setEditText("");
-    }
-  }, [editingNodeId, updateNode, setEditingNodeId, setEditText, nodes]);
+    },
+    [editingNodeId, updateNode, setEditingNodeId, setEditText, nodes],
+  );
 
   const handleTextCancel = useCallback(() => {
     setEditingNodeId(null);
     setEditText("");
   }, [setEditingNodeId, setEditText]);
 
-  const handleTextDoubleClick = useCallback((node: CanvasNode) => {
-    if (isTextTool(node.type)) {
-      setEditingNodeId(node.id);
-      setEditText(node.text || "");
-    }
-  }, [setEditingNodeId, setEditText]);
+  const handleTextDoubleClick = useCallback(
+    (node: CanvasNode) => {
+      if (isTextTool(node.type)) {
+        setEditingNodeId(node.id);
+        setEditText(node.text || "");
+      }
+    },
+    [setEditingNodeId, setEditText],
+  );
 
   const cursorClass = isPanning
     ? "cursor-grabbing"
@@ -489,12 +504,16 @@ export default function Canvas({ action }: CanvasProps) {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onContextMenu={(e) => e.preventDefault()}
         onDoubleClick={(e) => {
           const canvas = canvasRef.current;
           if (!canvas) return;
           const { x, y } = getMousePosition(e);
           const canvasCoords = screenToCanvas(x, y);
-          const existingNode = getNodeAtPosition(canvasCoords.x, canvasCoords.y);
+          const existingNode = getNodeAtPosition(
+            canvasCoords.x,
+            canvasCoords.y,
+          );
           if (existingNode && isTextTool(existingNode.type)) {
             // Clear the timeout to prevent new text node creation
             if (clickTimeoutRef.current) {
@@ -512,16 +531,17 @@ export default function Canvas({ action }: CanvasProps) {
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
       />
-      {editingNodeId && (() => {
-        const editingNode = nodes.find(n => n.id === editingNodeId);
-        return editingNode ? (
-          <TextEditor
-            node={editingNode}
-            onSave={handleTextSave}
-            onCancel={handleTextCancel}
-          />
-        ) : null;
-      })()}
+      {editingNodeId &&
+        (() => {
+          const editingNode = nodes.find((n) => n.id === editingNodeId);
+          return editingNode ? (
+            <TextEditor
+              node={editingNode}
+              onSave={handleTextSave}
+              onCancel={handleTextCancel}
+            />
+          ) : null;
+        })()}
     </>
   );
 }
