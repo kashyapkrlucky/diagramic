@@ -4,9 +4,9 @@ import type { Drawing } from "../../types";
 import {
   ClockIcon,
   DownloadIcon,
-  FolderIcon,
   LinkIcon,
   MoreHorizontalIcon,
+  RectangleHorizontalIcon,
   Trash2Icon,
 } from "lucide-react";
 import ConfirmBox from "../common/ConfirmBox";
@@ -81,13 +81,13 @@ export default function DrawingCard({ drawing }: DrawingCardProps) {
         ) : (
           <div className="aspect-video bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
             <div className="w-16 h-16 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-xl flex items-center justify-center">
-              <FolderIcon className="w-8 h-8 text-indigo-600" />
+              <RectangleHorizontalIcon className="w-8 h-8 text-indigo-600" />
             </div>
           </div>
         )}
 
         {/* Overlay Actions */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-4">
           <button
             onClick={() => redirectTo(drawing._id)}
             className="inline-flex items-center gap-2 px-2 py-1 bg-white text-gray-900 font-medium rounded-lg shadow-lg hover:bg-gray-50 transition-colors duration-200"

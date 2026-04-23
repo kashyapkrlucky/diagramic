@@ -22,12 +22,12 @@ export default function Home() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/sign-in');
+      navigate("/sign-in");
     }
   }, [isAuthenticated, navigate]);
 
   if (loading) {
-    return <Loader message="Loading your workplace..."/>;
+    return <Loader message="Loading your workplace..." />;
   }
 
   if (error) {
@@ -35,11 +35,9 @@ export default function Home() {
   }
 
   if (!isAuthenticated) {
-    navigate('/sign-in');
+    navigate("/sign-in");
     return null;
   }
-
-
 
   return (
     <Layout navbarType="home">
@@ -59,10 +57,10 @@ export default function Home() {
               </div>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-3 text-sm py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all duration-300"
               >
-                <PlusIcon className="w-5 h-5" />
-                <span>Create New</span>
+                <PlusIcon className="w-4 h-4" />
+                <span>Create</span>
               </button>
             </div>
           </div>
@@ -107,8 +105,8 @@ export default function Home() {
       >
         <CreateDrawingForm
           onSuccess={(id: string) => {
+            navigate(`/editor/${id}`);
             setIsModalOpen(false);
-            window.location.href = `/editor/${id}`;
           }}
           onCancel={() => setIsModalOpen(false)}
         />

@@ -35,8 +35,6 @@ export default function NavBar({
       <div className="flex items-center gap-1">
         {type === "editor" && (
           <>
-            <div className="w-px h-6 bg-gray-300 mx-2" />
-
             <button
               className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group relative"
               onClick={onToggleSidebar}
@@ -50,6 +48,9 @@ export default function NavBar({
                 )}
               </span>
             </button>
+
+            <div className="w-px h-6 bg-gray-300 mx-2" />
+
           </>
         )}
 

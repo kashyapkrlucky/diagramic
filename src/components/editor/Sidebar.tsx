@@ -24,9 +24,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const { handleExport, handleImport } = useJsonAction(nodes, setNodes);
 
+  const selectedNodesCount = nodes.filter(
+    (node) => selectedNode?.id === node.id,
+  ).length;
   return (
     <div
-      className={`absolute right-0 top-0 bottom-0 w-80 bg-white border-l border-gray-200 shadow-2xl transition-all duration-300 ease-in-out ${
+      className={`absolute right-0 top-0 bottom-0 w-80 h-full bg-white border-l border-gray-200 shadow-2xl transition-all duration-300 ease-in-out ${
         isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
     >
@@ -35,7 +38,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex items-center gap-2 justify-between">
           <div className="flex items-center gap-2">
             <LayersIcon className="w-4 h-4 text-gray-500" />
-            <h1 className="text-lg font-semibold text-gray-900">Properties</h1>
+            <p className="text-lg font-semibold text-gray-900">Properties</p>
           </div>
 
           <button
@@ -74,69 +77,65 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </header>
 
       {/* Content */}
-      <section
-        className="px-6 py-4 overflow-hidden"
-        style={{ height: "calc(100vh - 120px)" }}
-      >
-        <div className="overflow-y-auto hide-scrollbar h-full">
+      <section className="px-6 py-4 overflow-hidden flex-1">
+        <div
+          className="overflow-y-auto hide-scrollbar"
+          style={{ height: "calc(100vh - 120px)" }}
+        >
           {currentTab === tabs[0] && (
             <div className="space-y-4">
-              {nodes.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <LayersIcon className="w-8 h-8 text-gray-400" />
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xs font-semibold text-gray-900">
+                    Canvas Nodes ({nodes.length})
+                  </h2>
+                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {selectedNodesCount} selected
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                    No nodes yet
-                  </h3>
-                  <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                    Start by adding shapes, text, or drawings to your canvas
-                  </p>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-semibold text-gray-900">
-                      Canvas Nodes ({nodes.length})
-                    </h2>
-                    <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                      {
-                        nodes.filter((node) => selectedNode?.id === node.id)
-                          .length
-                      }{" "}
-                      selected
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {nodes.map((node) => (
+                <div className="space-y-2">
+                  {nodes.length > 0 ? (
+                    nodes.map((node) => (
                       <AccordionItem
                         key={node.id}
                         node={node}
                         isSelected={selectedNode?.id === node.id}
                         onRemove={() => removeNode(node.id)}
                       />
-                    ))}
-                  </div>
-                </>
-              )}
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <WorkflowIcon className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                        No nodes yet
+                      </h3>
+                      <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                        Start by adding shapes, text, or drawings to your canvas
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
             </div>
           )}
 
           {currentTab === tabs[1] && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-900">
+                <h2 className="text-xs font-semibold text-gray-900">
                   JSON Data
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExport}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-all duration-200"
+                    className="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-all duration-200"
                   >
                     <DownloadIcon className="w-3 h-3" />
                     Export
                   </button>
-                  <label className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 cursor-pointer transition-all duration-200">
+                  <label className="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 cursor-pointer transition-all duration-200">
                     <UploadIcon className="w-3 h-3" />
                     Import
                     <input
@@ -151,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               <div className="relative">
                 <textarea
-                  className="w-full h-96 p-4 hide-scrollbar text-xs font-mono bg-gray-900 text-green-400 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full flex-1 p-4 hide-scrollbar text-xs font-mono bg-gray-900 text-green-400 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   value={JSON.stringify(nodes, null, 2)}
                   readOnly
                   placeholder="No nodes data available..."
