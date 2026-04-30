@@ -117,3 +117,14 @@ export const EDGE_COLORS = {
   HOVER: '#0056b3',
   DASHED: '#999',
 } as const;
+
+
+export interface User {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

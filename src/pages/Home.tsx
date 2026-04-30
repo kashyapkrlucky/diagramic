@@ -22,7 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/sign-in");
+      // navigate("/sign-in");
     }
   }, [isAuthenticated, navigate]);
 
@@ -32,11 +32,6 @@ export default function Home() {
 
   if (error) {
     return <div>Error: {error}</div>;
-  }
-
-  if (!isAuthenticated) {
-    navigate("/sign-in");
-    return null;
   }
 
   return (
