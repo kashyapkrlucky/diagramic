@@ -22,7 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // navigate("/sign-in");
+      navigate("/sign-in");
     }
   }, [isAuthenticated, navigate]);
 

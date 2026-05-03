@@ -32,6 +32,15 @@ export default function SignIn() {
     });
   }, []);
 
+  const handleGuestLogin = async () => {
+    const token = await onGuestLogin();
+    if (token) {
+      navigate("/");
+    } else {
+      alert("Failed to login as guest. Please try again.");
+    }
+  };
+
   const onAtlasLogin = () => {
     window.location.href = `${import.meta.env.VITE_AUTH_APP_URL}/authorize?o=${import.meta.env.VITE_APP_BASE_URL || window.location.origin}`;
   }
@@ -116,7 +125,7 @@ export default function SignIn() {
             <div className="flex flex-row justify-between gap-6">
               <div className="flex-1 flex flex-col gap-4">
                 <button
-                  onClick={onGuestLogin}
+                  onClick={handleGuestLogin}
                   onMouseEnter={() => setHovered(true)}
                   onMouseLeave={() => setHovered(false)}
                   disabled={loading}

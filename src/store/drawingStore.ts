@@ -39,7 +39,9 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     fetchDrawingById: async (id: string) => {
       try {
         set({ loading: true, error: null });
-        const { data: {data} } = await axiosInstance.get(`/drawings/${id}`);
+        const {
+          data: { data },
+        } = await axiosInstance.get(`/drawings/${id}`);
         set({ drawing: data });
         return data;
       } catch (error) {
@@ -52,7 +54,9 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     createDrawing: async (drawing: Partial<Drawing>) => {
       try {
         set({ loading: true, error: null });
-        const { data: {data} } = await axiosInstance.post("/drawings", drawing);
+        const {
+          data: { data },
+        } = await axiosInstance.post("/drawings", drawing);
         return data;
       } catch (error) {
         console.error("Error creating drawing:", error);
@@ -77,7 +81,9 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
       try {
         set({ loading: true, error: null });
         await axiosInstance.delete(`/drawings/${id}`);
-        set({ drawings: get().drawings.filter((drawing) => drawing._id !== id) });
+        set({
+          drawings: get().drawings.filter((drawing) => drawing._id !== id),
+        });
       } catch (error) {
         console.error("Error deleting drawing:", error);
         set({ error: "Failed to delete drawing" });
