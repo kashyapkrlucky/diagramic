@@ -1,49 +1,98 @@
 import { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-import type { User } from '../types';
+import type { User } from '../types/index.ts';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  token: string
+  loading: boolean;
 }
 
-const getInitialAuthState = (): AuthState => {
-  const user = localStorage.getItem('user');
-  const token = localStorage.getItem('token');
-  
-  return {
-    isAuthenticated: !!(user && token),
-    user: user ? JSON.parse(user) : null,
-    token: token || ''
-  };
-};
-
-const getInitialUser = (): User | null => {
-  const storedUser = localStorage.getItem('user');
-  return storedUser ? JSON.parse(storedUser) : null;
-};
-
-const getInitialToken = (): string | null => {
-  return localStorage.getItem('token');
-};
-
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(getInitialUser);
-  const [token, setToken] = useState<string | null>(getInitialToken);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(getInitialAuthState().isAuthenticated);
+  const navigate = useNavigate();
+  
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    try {
+      const userStr = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (userStr && token) {
+        const userData: User = JSON.parse(userStr);
+        return {
+          isAuthenticated: true,
+          user: userData,
+          loading: false
+        };
+      } else {
+        return {
+          isAuthenticated: false,
+          user: null,
+          loading: false
+        };
+      }
+    } catch {
+      return {
+        isAuthenticated: false,
+        user: null,
+        loading: false
+      };
+    }
+  });
+
+  const checkAuthStatus = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (userStr && token) {
+        const userData: User = JSON.parse(userStr);
+        setAuthState({
+          isAuthenticated: true,
+          user: userData,
+          loading: false
+        });
+      } else {
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          loading: false
+        });
+      }
+    } catch {
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        loading: false
+      });
+    }
+  };
 
   const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.clear();
-    setIsAuthenticated(false);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setAuthState({
+      isAuthenticated: false,
+      user: null,
+      loading: false
+    });
+    navigate('/');
   };
 
+  const login = (userData: User, token: string) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
+    setAuthState({
+      isAuthenticated: true,
+      user: userData,
+      loading: false
+    });
+  };
+
+  
   return {
-    user,
-    token,
-    isAuthenticated,
-    signOut
+    ...authState,
+    signOut,
+    login,
+    checkAuthStatus,
   };
 }

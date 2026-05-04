@@ -1,16 +1,15 @@
 import { create } from "zustand";
 import type { User } from "../types";
-import axios from "axios";
-
+import axios from "../lib/axios";
 interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
   clearAuth: () => void;
   isAuthenticated: () => boolean;
-  getUserData: (code: string) => Promise<string | null>;
-  onGuestLogin: () => Promise<string | null>;
-}
+  getUserData: (code: string) => Promise<{user: User, token: string} | null>;
+  onGuestLogin: () => Promise<{user: User, token: string} | null>;
+  }
 
 export const useUserStore = create<AuthState>((set) => ({
   user: null,
@@ -22,17 +21,14 @@ export const useUserStore = create<AuthState>((set) => ({
     try {
       const {
         data: { data },
-      } = await axios.post(
-        import.meta.env.VITE_AUTH_API_URL + "/v1/public/session",
-        {
-          code,
-        },
-      );
+      } = await axios.post("/v1/public/session", {
+        code,
+      });
       const { user, token } = data;
       set({ user, token });
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", token);
-      return token;
+      return { user, token };
     } catch {
       return null;
     }
@@ -40,17 +36,15 @@ export const useUserStore = create<AuthState>((set) => ({
 
   onGuestLogin: async () => {
     try {
-      const apiPath = import.meta.env.VITE_AUTH_API_URL + "/v1/public/guest";
-      const baseUrl =
-        import.meta.env.VITE_APP_BASE_URL || window.location.origin;
+      const baseUrl = import.meta.env.VITE_BASE_URL;
       const {
         data: { data },
-      } = await axios.post(apiPath, { clientUrl: baseUrl });
+      } = await axios.post("/v1/public/guest", { clientUrl: baseUrl });
       const { user, token } = data;
       set({ user, token });
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", token);
-      return token;
+      return { user, token };
     } catch {
       return null;
     }

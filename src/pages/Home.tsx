@@ -9,22 +9,33 @@ import { useDrawingStore } from "../store/drawingStore";
 import Loader from "../components/common/Loader";
 import { useAuth } from "../hooks/useAuth";
 import DrawingCard from "../components/home/DrawingCard";
+import { useUserStore } from "../store/authStore";
+import { getCodeFromURL } from "../utils/getToken";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { loading, error, drawings, fetchDrawings } = useDrawingStore();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
+  const { getUserData } = useUserStore();
 
   useEffect(() => {
-    fetchDrawings();
-  }, [fetchDrawings]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/sign-in");
+    const code = getCodeFromURL();
+    if (code) {
+      getUserData(code).then((result) => {
+        if (result?.token) {
+          login(result.user, result.token);
+        }
+      });
     }
-  }, [isAuthenticated, navigate]);
+  }, [getUserData, login]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDrawings();
+      // navigate("/sign-in");
+    }
+  }, [isAuthenticated, fetchDrawings]);
 
   if (loading) {
     return <Loader message="Loading your workplace..." />;

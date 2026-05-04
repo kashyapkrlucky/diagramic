@@ -42,7 +42,7 @@ export default function SignIn() {
   };
 
   const onAtlasLogin = () => {
-    window.location.href = `${import.meta.env.VITE_AUTH_APP_URL}/authorize?o=${import.meta.env.VITE_APP_BASE_URL || window.location.origin}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/authorize?client_id=${import.meta.env.VITE_CLIENT_ID}`;
   }
 
   const features = [

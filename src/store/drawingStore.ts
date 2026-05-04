@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Drawing } from "../types";
-import axiosInstance from "../lib/axios";
+import axios from "../lib/axios";
 
 interface DrawingStore {
   loading: boolean;
@@ -27,7 +27,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axiosInstance.get("/drawings");
+        } = await axios.get("/v1/public/drawings");
         set({ drawings: data });
       } catch (error) {
         console.error("Error fetching drawings:", error);
@@ -41,7 +41,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axiosInstance.get(`/drawings/${id}`);
+        } = await axios.get(`/v1/public/drawings/${id}`);
         set({ drawing: data });
         return data;
       } catch (error) {
@@ -56,7 +56,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axiosInstance.post("/drawings", drawing);
+        } = await axios.post("/v1/public/drawings", drawing);
         return data;
       } catch (error) {
         console.error("Error creating drawing:", error);
@@ -68,7 +68,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     updateDrawing: async (id: string, drawing: Partial<Drawing>) => {
       try {
         set({ isUpdating: true, error: null });
-        const { data } = await axiosInstance.patch(`/drawings/${id}`, drawing);
+        const { data } = await axios.patch(`/v1/public/drawings/${id}`, drawing);
         return data;
       } catch (error) {
         console.error("Error updating drawing:", error);
@@ -80,7 +80,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     deleteDrawing: async (id: string) => {
       try {
         set({ loading: true, error: null });
-        await axiosInstance.delete(`/drawings/${id}`);
+        await axios.delete(`/v1/public/drawings/${id}`);
         set({
           drawings: get().drawings.filter((drawing) => drawing._id !== id),
         });
