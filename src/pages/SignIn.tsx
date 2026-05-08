@@ -1,18 +1,11 @@
-import {
-  ArrowRightIcon,
-  SparklesIcon,
-  ZapIcon,
-  LayersIcon,
-  PaletteIcon,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { CircleUserRoundIcon, LogInIcon } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useUserStore } from "../store/authStore";
+import { Button } from "../components/common/Button";
 
 export default function SignIn() {
-  const [mounted, setMounted] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -24,13 +17,6 @@ export default function SignIn() {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    // Use requestAnimationFrame to avoid synchronous setState
-    requestAnimationFrame(() => {
-      setTimeout(() => setMounted(true), 100);
-    });
-  }, []);
 
   const handleGuestLogin = async () => {
     const token = await onGuestLogin();
@@ -45,145 +31,76 @@ export default function SignIn() {
     window.location.href = `${import.meta.env.VITE_API_URL}/authorize?client_id=${import.meta.env.VITE_CLIENT_ID}`;
   }
 
-  const features = [
-    {
-      icon: <SparklesIcon className="w-6 h-6" />,
-      title: "Easy Drawing",
-      description: "Intuitive tools for creating flowcharts",
-    },
-    {
-      icon: <ZapIcon className="w-6 h-6" />,
-      title: "Quick Start",
-      description: "Create projects instantly and begin drawing",
-    },
-    {
-      icon: <LayersIcon className="w-6 h-6" />,
-      title: "Clean Interface",
-      description: "Simple, distraction-free design environment",
-    },
-    {
-      icon: <PaletteIcon className="w-6 h-6" />,
-      title: "Beautiful Design",
-      description: "Modern UI with smooth animations",
-    },
-  ];
-
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-sm p-8 rounded-2xl border border-slate-200/50 flex flex-col items-center text-center gap-8 transition-all duration-300">
+        
+
         {/* Logo Section */}
-        <div
-          className={`text-center mb-12 transition-all duration-1000 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
+        <div className="flex flex-col items-center gap-3">
           <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-lg rounded-3xl shadow-sm border border-black/20">
             <span className="text-4xl font-bold text-gray-900">LD</span>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-3">Let's Draw</h1>
-          <p className="text-xl text-gray-600 font-light">
-            Professional Flowchart Creator
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Welcome Back
+          </h1>
+          <p className="text-sm text-slate-600">
+            Let's Draw is your professional flowchart creator, helping you visualize and organize your ideas with ease.
           </p>
         </div>
 
-        {/* Feature Cards */}
-        <div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 max-w-6xl mx-auto w-full transition-all duration-1000 delay-300 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-gray-200  transition-all duration-300"
-            >
-              <div className="text-white mb-4">{feature.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 text-sm">{feature.description}</p>
+       {/* Action Buttons */}
+        <div className="flex flex-col gap-3 w-full">
+          <Button disabled={loading} onClick={onAtlasLogin}>
+            <span className="flex items-center justify-center gap-2">
+              <LogInIcon />
+              Sign in with Atlas ID
+            </span>
+          </Button>
+          <p className="text-xs text-slate-600">
+            Atlas ID is your unified identity across all Atlas services
+          </p>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-slate-200"></span>
             </div>
-          ))}
-        </div>
-
-        {/* CTA Section */}
-        <div
-          className={`text-center transition-all duration-1000 delay-500 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
-          <div className="bg-gray-50 backdrop-blur-lg rounded-3xl p-8 border border-gray-200 max-w-lg mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Start Drawing
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Create beautiful flowcharts with our simple and intuitive drawing
-              tools
-            </p>
-
-            <div className="flex flex-row justify-between gap-6">
-              <div className="flex-1 flex flex-col gap-4">
-                <button
-                  onClick={handleGuestLogin}
-                  onMouseEnter={() => setHovered(true)}
-                  onMouseLeave={() => setHovered(false)}
-                  disabled={loading}
-                  className={`group inline-flex items-center justify-center gap-3 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300 transform hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Loading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Continue as Guest</span>
-                      <ArrowRightIcon
-                        className={`w-4 h-4 transition-transform duration-300 ${
-                          hovered ? "translate-x-1" : ""
-                        }`}
-                      />
-                    </>
-                  )}
-                </button>
-
-                <span className="text-gray-600 text-xs">
-                  No registration required
-                </span>
-              </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <button
-                  onClick={onAtlasLogin}
-                  onMouseEnter={() => setHovered(true)}
-                  onMouseLeave={() => setHovered(false)}
-                  disabled={loading}
-                  className={`group inline-flex items-center justify-center gap-3 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300 transform hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Loading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Login with Atlas Id</span>
-                      <ArrowRightIcon
-                        className={`w-4 h-4 transition-transform duration-300 ${
-                          hovered ? "translate-x-1" : ""
-                        }`}
-                      />
-                    </>
-                  )}
-                </button>
-
-                <span className="text-gray-600 text-xs">
-                  Register with Atlas Id for saving your projects and accessing
-                  them across devices
-                </span>
-              </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-slate-500">or</span>
             </div>
           </div>
+
+          <Button disabled={loading} variant="outline" onClick={handleGuestLogin}>
+            <span className="flex items-center justify-center gap-2">
+              <CircleUserRoundIcon />
+              Continue as Guest
+            </span>
+          </Button>
+        </div>
+        
+
+         {/* Terms and Conditions */}
+        <div className="text-center space-y-1">
+          <p className="text-xs text-slate-500 leading-relaxed">
+            By continuing, you agree to our{" "}
+            <a
+              href="/terms"
+              className="text-blue-600 hover:text-blue-700 underline transition-colors duration-200 font-medium"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="/privacy"
+              className="text-blue-600 hover:text-blue-700 underline transition-colors duration-200 font-medium"
+            >
+              Privacy Policy
+            </a>
+          </p>
+          <p className="text-xs text-slate-400">
+            &copy; 2026 Let's Draw. All rights reserved.
+          </p>
         </div>
       </div>
     </div>
