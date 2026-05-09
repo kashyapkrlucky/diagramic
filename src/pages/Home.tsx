@@ -31,9 +31,14 @@ export default function Home() {
   }, [getUserData, login]);
 
   useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      navigate("/sign-in");
+    }
+  }, [isAuthenticated, navigate, loading]);
+
+  useEffect(() => {
     if (isAuthenticated) {
       fetchDrawings();
-      // navigate("/sign-in");
     }
   }, [isAuthenticated, fetchDrawings]);
 
