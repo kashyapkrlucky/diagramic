@@ -14,36 +14,41 @@ import { getCodeFromURL } from "../utils/getToken";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { loading, error, drawings, fetchDrawings } = useDrawingStore();
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const { error, drawings, fetchDrawings, loading } = useDrawingStore();
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
   const { getUserData } = useUserStore();
 
   useEffect(() => {
-    const code = getCodeFromURL();
-    if (code) {
-      getUserData(code).then((result) => {
-        if (result?.token) {
-          login(result.user, result.token);
+    const handleOAuthCallback = async () => {
+      const code = getCodeFromURL();
+      if (code) {
+        setIsOAuthLoading(true);
+        try {
+          const result = await getUserData(code);
+          if (result?.token) {
+            login(result.user, result.token);
+          }
+        } catch (error) {
+          console.error('OAuth callback failed:', error);
+        } finally {
+          setIsOAuthLoading(false);
         }
-      });
-    }
+      }
+    };
+
+    handleOAuthCallback();
   }, [getUserData, login]);
-
-  useEffect(() => {
-    if (!isAuthenticated && !loading) {
-      navigate("/sign-in");
-    }
-  }, [isAuthenticated, navigate, loading]);
-
+  
   useEffect(() => {
     if (isAuthenticated) {
       fetchDrawings();
     }
-  }, [isAuthenticated, fetchDrawings]);
+  }, [isAuthenticated, fetchDrawings, navigate]);
 
-  if (loading) {
-    return <Loader message="Loading your workplace..." />;
+  if (loading || isOAuthLoading) {
+    return <Loader message={isOAuthLoading ? "Authenticating..." : "Loading your workplace..."} />;
   }
 
   if (error) {
@@ -88,13 +93,6 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Create your first drawing to get started
               </p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
-              >
-                <PlusIcon className="w-5 h-5" />
-                <span>Create Drawing</span>
-              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
