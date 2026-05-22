@@ -27,7 +27,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axios.get("/v1/public/drawings");
+        } = await axios.get("/v1/modules/drawings");
         set({ drawings: data });
       } catch (error) {
         console.error("Error fetching drawings:", error);
@@ -41,7 +41,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axios.get(`/v1/public/drawings/${id}`);
+        } = await axios.get(`/v1/modules/drawings/${id}`);
         set({ drawing: data });
         return data;
       } catch (error) {
@@ -56,7 +56,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
         set({ loading: true, error: null });
         const {
           data: { data },
-        } = await axios.post("/v1/public/drawings", drawing);
+        } = await axios.post("/v1/modules/drawings", drawing);
         return data;
       } catch (error) {
         console.error("Error creating drawing:", error);
@@ -68,7 +68,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     updateDrawing: async (id: string, drawing: Partial<Drawing>) => {
       try {
         set({ isUpdating: true, error: null });
-        const { data } = await axios.patch(`/v1/public/drawings/${id}`, drawing);
+        const { data } = await axios.patch(`/v1/modules/drawings/${id}`, drawing);
         return data;
       } catch (error) {
         console.error("Error updating drawing:", error);
@@ -80,7 +80,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => {
     deleteDrawing: async (id: string) => {
       try {
         set({ loading: true, error: null });
-        await axios.delete(`/v1/public/drawings/${id}`);
+        await axios.delete(`/v1/modules/drawings/${id}`);
         set({
           drawings: get().drawings.filter((drawing) => drawing._id !== id),
         });
