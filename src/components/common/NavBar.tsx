@@ -18,13 +18,10 @@ export default function NavBar({
 }: NavBarProps) {
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
+    <header className="bg-white border-b border-gray-200 px-4 py-1 flex items-center justify-between shadow-sm">
       <div className="flex items-center gap-3">
         <Link to={"/"} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">LD</span>
-          </div>
-          <h1 className="text-xl font-semibold text-gray-800">Let's Draw</h1>
+          <img src="/logo.png" alt="Let's Draw" className="w-12 h-12" />
         </Link>
       </div>
 
@@ -46,7 +43,6 @@ export default function NavBar({
             </button>
 
             <div className="w-px h-6 bg-gray-300 mx-2" />
-
           </>
         )}
 

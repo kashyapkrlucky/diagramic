@@ -27,8 +27,8 @@ export default function Home() {
         setIsOAuthLoading(true);
         try {
           const result = await getUserData(code);
-          if (result?.token) {
-            login(result.user, result.token);
+          if (result?.access_token) {
+            login(result.user, result.access_token);
           }
         } catch (error) {
           console.error('OAuth callback failed:', error);

@@ -38,7 +38,15 @@ export default function UserMenu() {
         aria-expanded={isDropdownOpen}
         aria-haspopup="true"
       >
-        <UserCircle2Icon className="w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors" />
+        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+          {
+            user?.avatar ? (
+              <img src={user.avatar} alt="User avatar" className="w-8 h-8 rounded-full" />
+            ) : (
+              <UserCircle2Icon className="w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors" />
+            )
+          }
+        </div>
         <ChevronDownIcon
           className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
             isDropdownOpen ? "rotate-180" : ""
