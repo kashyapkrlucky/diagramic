@@ -7,48 +7,32 @@ import Modal from "../components/common/Modal";
 import CreateDrawingForm from "../components/editor/CreateDrawingForm";
 import { useDrawingStore } from "../store/drawingStore";
 import Loader from "../components/common/Loader";
-import { useAuth } from "../hooks/useAuth";
 import DrawingCard from "../components/home/DrawingCard";
-import { useUserStore } from "../store/authStore";
-import { getCodeFromURL } from "../utils/getToken";
+import useAuthStore from "../store/authStore";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const { error, drawings, fetchDrawings, loading } = useDrawingStore();
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
-  const { getUserData } = useUserStore();
+  // const { isAuthenticated, login } = useAuth();
 
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const code = getCodeFromURL();
-      if (code) {
-        setIsOAuthLoading(true);
-        try {
-          const result = await getUserData(code);
-          if (result?.access_token) {
-            login(result.user, result.access_token);
-          }
-        } catch (error) {
-          console.error('OAuth callback failed:', error);
-        } finally {
-          setIsOAuthLoading(false);
-        }
-      }
-    };
+  // const { isAuthenticated, loading: authLoading, user } = useAuthStore();
+  const { isAuthenticated, loading: authLoading } = useAuthStore();
 
-    handleOAuthCallback();
-  }, [getUserData, login]);
-  
   useEffect(() => {
     if (isAuthenticated) {
       fetchDrawings();
     }
   }, [isAuthenticated, fetchDrawings, navigate]);
 
-  if (loading || isOAuthLoading) {
-    return <Loader message={isOAuthLoading ? "Authenticating..." : "Loading your workplace..."} />;
+  if (authLoading || loading) {
+    return (
+      <Loader
+        message={
+          (authLoading || loading) ? "Authenticating..." : "Loading your workplace..."
+        }
+      />
+    );
   }
 
   if (error) {

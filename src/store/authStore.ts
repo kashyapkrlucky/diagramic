@@ -1,13 +1,97 @@
 import { create } from "zustand";
-import type { User } from "../types";
-import axios from "../lib/axios";
-interface AuthState {
+import rawAxios from "axios";
+import axios from "@/lib/axios";
+import {
+  getStoredToken,
+  setStoredToken,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  USER_KEY,
+} from "@/shared/utils";
+import type { User } from "@/types";
+
+const API_BASE_URL =
+  (import.meta.env.VITE_API_URL || "http://localhost:3000") + "/api";
+
+interface AuthTokenPayload {
+  user?: User;
+  token?: string;
+  access_token?: string;
+  refresh_token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  [key: string]: unknown;
+}
+
+const findTokenValue = (
+  data: unknown,
+  keys: string[],
+  visited = new WeakSet<object>(),
+): string | undefined => {
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+
+  if (visited.has(data)) {
+    return undefined;
+  }
+
+  visited.add(data);
+
+  for (const key of keys) {
+    const value = (data as Record<string, unknown>)[key];
+    if (typeof value === "string" && value.length > 0) {
+      return value;
+    }
+  }
+
+  for (const value of Object.values(data)) {
+    const token = findTokenValue(value, keys, visited);
+    if (token) {
+      return token;
+    }
+  }
+
+  return undefined;
+};
+
+const getTokensFromPayload = (
+  data: unknown,
+  fallbackRefreshToken?: string | null,
+) => {
+  const access_token = findTokenValue(data, [
+    "access_token",
+    "accessToken",
+    "token",
+  ]);
+  const refresh_token =
+    findTokenValue(data, ["refresh_token", "refreshToken"]) ??
+    fallbackRefreshToken;
+
+  if (!access_token || !refresh_token) {
+    throw new Error("Auth response is missing token data.");
+  }
+
+  return { access_token, refresh_token };
+};
+
+const persistAuthTokens = (accessToken: string, refreshToken: string) => {
+  setStoredToken(ACCESS_TOKEN_KEY, accessToken);
+  setStoredToken(REFRESH_TOKEN_KEY, refreshToken);
+};
+
+export interface AuthState {
   user: User | null;
   access_token: string | null;
   refresh_token: string | null;
+  isAuthenticated: boolean;
   loading: boolean;
-  clearAuth: () => void;
-  isAuthenticated: () => boolean;
+  isGuestLoading: boolean;
+  error: string | null;
+  logout: () => void;
+  clearError: () => void;
+  initialize: () => Promise<void>;
+
   getUserData: (code: string) => Promise<{
     user: User;
     access_token: string;
@@ -18,82 +102,131 @@ interface AuthState {
     access_token: string;
     refresh_token: string;
   } | null>;
+  getLoggedInUser: () => User | null;
+  getToken: () => string | null;
   getRefreshedTokens: () => Promise<{
     access_token: string;
     refresh_token: string;
   } | null>;
-  logout: () => void;
 }
 
-const setTokens = (access_token: string, refresh_token: string) => {
-  localStorage.setItem("access_token", access_token);
-  localStorage.setItem("refresh_token", refresh_token);
-  // document.cookie = `refresh_token=${refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}`; // 30days
-};
-
-export const useUserStore = create<AuthState>((set) => ({
-  user: null,
-  access_token: null,
-  refresh_token: null,
+export const useAuthStore = create<AuthState>((set) => ({
+  user: getStoredToken(USER_KEY) ? JSON.parse(getStoredToken(USER_KEY)!) : null,
+  access_token: getStoredToken(ACCESS_TOKEN_KEY),
+  refresh_token: getStoredToken(REFRESH_TOKEN_KEY),
+  isAuthenticated: !!getStoredToken(ACCESS_TOKEN_KEY),
   loading: false,
-  clearAuth: () => set({ user: null, access_token: null, refresh_token: null }),
-  isAuthenticated: () => !!localStorage.getItem("access_token"),
+  isGuestLoading: false,
+  error: null,
+
+  clearError: () => {
+    set({ error: null });
+  },
+
+  initialize: async () => {
+    set({ loading: true });
+    try {
+      const access_token = getStoredToken(ACCESS_TOKEN_KEY);
+      const user = getStoredToken(USER_KEY);
+      if (access_token && user) {
+        set({ access_token, isAuthenticated: true, user: JSON.parse(user) });
+      }
+      set({ loading: false });
+    } catch (error) {
+      set({
+        loading: false,
+        error: error instanceof Error ? error.message : "Initialization failed",
+      });
+    }
+  },
+
   getUserData: async (code: string) => {
     try {
+      set({ loading: true });
       const {
         data: { data },
       } = await axios.post("/v1/modules/session", {
         code,
       });
-      const { user, access_token, refresh_token } = data;
-      localStorage.setItem("user", JSON.stringify(user));
-      setTokens(access_token, refresh_token);
-      set({ user, access_token, refresh_token });
+      const { user } = data as AuthTokenPayload;
+      const { access_token, refresh_token } = getTokensFromPayload(data);
+      if (!user) {
+        throw new Error("Auth response is missing user data.");
+      }
+      set({ user, access_token, refresh_token, isAuthenticated: true });
+      setStoredToken(USER_KEY, JSON.stringify(user));
+      persistAuthTokens(access_token, refresh_token);
       return { user, access_token, refresh_token };
     } catch {
       return null;
+    } finally {
+      set({ loading: false });
     }
   },
 
   onGuestLogin: async () => {
     try {
-      const baseUrl = import.meta.env.VITE_BASE_URL;
+      set({ isGuestLoading: true });
+      const clientId = import.meta.env.VITE_CLIENT_ID;
       const {
         data: { data },
-      } = await axios.post("/v1/modules/guest", { clientUrl: baseUrl });
-
-      const { user, access_token, refresh_token } = data;
-      localStorage.setItem("user", JSON.stringify(user));
-      setTokens(access_token, refresh_token);
-      set({ user, access_token, refresh_token });
+      } = await axios.post("/v1/modules/guest", { clientId });
+      const { user } = data as AuthTokenPayload;
+      const { access_token, refresh_token } = getTokensFromPayload(data);
+      if (!user) {
+        throw new Error("Auth response is missing user data.");
+      }
+      set({ user, access_token, refresh_token, isAuthenticated: true });
+      setStoredToken(USER_KEY, JSON.stringify(user));
+      persistAuthTokens(access_token, refresh_token);
       return { user, access_token, refresh_token };
     } catch {
       return null;
+    } finally {
+      set({ isGuestLoading: false });
     }
   },
-  getRefreshedTokens: async () => {
-    const current_refresh_token = localStorage.getItem("refresh_token");
-
-    const {
-      data: { data },
-    } = await axios.post("/v1/modules/session/refresh", {
-      refresh_token: current_refresh_token,
-    });
-    const { access_token, refresh_token } = data;
-    set({ access_token, refresh_token, isAuthenticated: () => true });
-    setTokens(access_token, refresh_token);
-
-    return { access_token, refresh_token };
+  getLoggedInUser: () => {
+    return getStoredToken(USER_KEY)
+      ? JSON.parse(getStoredToken(USER_KEY)!)
+      : null;
+  },
+  getToken: () => {
+    return getStoredToken(ACCESS_TOKEN_KEY);
   },
   logout: () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
+    setStoredToken(ACCESS_TOKEN_KEY, null);
+    setStoredToken(REFRESH_TOKEN_KEY, null);
+    setStoredToken(USER_KEY, null);
     set({
       user: null,
       access_token: null,
       refresh_token: null,
-      isAuthenticated: () => false,
+      isAuthenticated: false,
+      error: null,
     });
   },
+
+  getRefreshedTokens: async () => {
+    const current_refresh_token = getStoredToken(REFRESH_TOKEN_KEY);
+
+    if (!current_refresh_token) {
+      throw new Error("Refresh token is missing.");
+    }
+
+    const {
+      data: { data },
+    } = await rawAxios.post(`${API_BASE_URL}/v1/modules/session/refresh`, {
+      refresh_token: current_refresh_token,
+    });
+
+    console.log("Refresh response data:", data);
+    const { access_token, refresh_token } = data;
+    set({ access_token, refresh_token, isAuthenticated: true });
+    persistAuthTokens(access_token, refresh_token);
+
+    return { access_token, refresh_token };
+  },
 }));
+
+export default useAuthStore;

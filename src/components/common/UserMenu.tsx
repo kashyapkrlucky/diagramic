@@ -1,13 +1,12 @@
 import { UserCircle2Icon, LogOutIcon, ChevronDownIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthStore from "@/store/authStore";
 
 export default function UserMenu() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { signOut } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { user } = useAuth();
+  const { user, logout } = useAuthStore();
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -24,7 +23,7 @@ export default function UserMenu() {
   }, []);
 
   const handleLogout = () => {
-    signOut();
+    logout();
     window.location.href = "/sign-in";
     setIsDropdownOpen(false);
   };

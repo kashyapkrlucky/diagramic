@@ -1,15 +1,13 @@
 import { CircleUserRoundIcon, LogInIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useUserStore } from "../store/authStore";
+import useAuthStore from "../store/authStore";
 import { Button } from "../components/common/Button";
 
 export default function SignIn() {
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const { onGuestLogin, loading } = useUserStore();
+  const { onGuestLogin, loading, isAuthenticated } = useAuthStore();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -39,14 +37,14 @@ export default function SignIn() {
 
         {/* Logo Section */}
         <div className="flex flex-col items-center gap-3">
-          <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-lg rounded-3xl shadow-sm border border-black/20">
-            <span className="text-4xl font-bold text-gray-900">LD</span>
+          <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-lg rounded-xl shadow-sm border border-black/20">
+            <img src="/logo.png" alt="Logo" className="w-16 h-16" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Welcome Back
           </h1>
           <p className="text-sm text-slate-600">
-            Let's Draw is your professional flowchart creator, helping you visualize and organize your ideas with ease.
+            Diagramic is your professional flowchart creator, helping you visualize and organize your ideas with ease.
           </p>
         </div>
 
@@ -99,7 +97,7 @@ export default function SignIn() {
             </a>
           </p>
           <p className="text-xs text-slate-400">
-            &copy; 2026 Let's Draw. All rights reserved.
+            &copy; 2026 Diagramic. All rights reserved.
           </p>
         </div>
       </div>

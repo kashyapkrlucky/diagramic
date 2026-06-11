@@ -1,4 +1,4 @@
-import { ToolType, type CanvasNode, type Draw } from "../types";
+import { ToolType, type CanvasNode, type Draw } from "@/types";
 
 const DEFAULT_STROKE_WIDTH = 2;
 const DEFAULT_FILL_COLOR = "#ffffff";
