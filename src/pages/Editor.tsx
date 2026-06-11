@@ -2,18 +2,17 @@ import Canvas from "../components/editor/Canvas";
 import ToolBar from "../components/editor/ToolBar";
 import Sidebar from "../components/editor/Sidebar";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Layout from "../components/common/Layout";
-import { useAuth } from "../hooks/useAuth";
 import { useDrawingStore } from "../store/drawingStore";
 import { useCanvasStore } from "../store/canvasStore";
 import Loader from "../components/common/Loader";
+import useAuthStore from "../store/authStore";
 
 export default function Editor() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [canvasAction, setCanvasAction] = useState<string>("");
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuthStore();
   const { drawing, loading, fetchDrawingById } = useDrawingStore();
   const { setNodes } = useCanvasStore();
 
@@ -32,12 +31,6 @@ export default function Editor() {
       fetchDrawingById(params.id);
     }
   }, [params.id, fetchDrawingById]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/sign-in");
-    }
-  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     if (drawing && drawing.data) {

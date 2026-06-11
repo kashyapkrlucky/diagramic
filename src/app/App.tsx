@@ -66,6 +66,10 @@ const createRouteElement = (route: RouteConfig) => {
     return <ProtectedRoute>{element}</ProtectedRoute>;
   }
 
+  if (route.guestOnly) {
+    return <ProtectedRoute type="guest">{element}</ProtectedRoute>;
+  }
+
   return element;
 };
 
